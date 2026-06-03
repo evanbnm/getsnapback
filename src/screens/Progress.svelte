@@ -8,8 +8,8 @@
   export let options;
 
   const dispatch   = createEventDispatcher();
-  const PHASE_COUNT = 5;
 
+  let phaseCount = options?.overlay_videos ? 5 : 4;
   let phase      = 0;
   let phaseLabel = '';
   let processed  = 0;
@@ -22,24 +22,39 @@
   let elapsedInterval = null;
   let unlisten  = null;
 
-  // ETA tracking — scoped to the current phase, with a moving window of recent
-  // item durations so a slow item doesn't make the ETA spike between completions.
-  const ETA_WINDOW = 10;
+  // ETA tracking — countdown model. We compute a target ETA only when an item
+  // finishes (so the value updates on real signal), then tick it down smoothly
+  // by elapsed wall-clock time between completions. avgMs uses a wide window
+  // to avoid a single slow item swinging the displayed value.
+  const ETA_WINDOW = 30;
   let prevPhase = 0;
   let prevProcessed = 0;
   let lastItemTime = null;      // timestamp of last processed-counter increment
   let itemDurations = [];        // ms per completed item, current phase only
+  let etaTargetSec = null;       // ETA seconds at lastItemTime
+
+  function recomputeEtaTarget(p) {
+    if (!p.total || itemDurations.length === 0) { etaTargetSec = null; return; }
+    const remaining = p.total - p.processed;
+    if (remaining <= 0) { etaTargetSec = 0; return; }
+    const avgMs = itemDurations.reduce((a, b) => a + b, 0) / itemDurations.length;
+    etaTargetSec = (remaining * avgMs) / 1000;
+  }
 
   onMount(async () => {
     unlisten = await listen('progress', (event) => {
       const p = event.payload;
 
+      if (p.total_phases) phaseCount = p.total_phases;
+
+      let completionEvent = false;
       if (p.phase !== prevPhase) {
         // New phase — reset all ETA state
         prevPhase = p.phase;
         prevProcessed = p.processed;
         lastItemTime = Date.now();
         itemDurations = [];
+        etaTargetSec = null;
       } else if (p.processed > prevProcessed) {
         // One (or more) items just completed
         const now = Date.now();
@@ -51,6 +66,7 @@
         }
         lastItemTime = now;
         prevProcessed = p.processed;
+        completionEvent = true;
       }
 
       phase = p.phase;
@@ -58,10 +74,12 @@
       processed = p.processed;
       total = p.total;
       currentFile = p.current_file ?? null;
-      updateEta();
+
+      if (completionEvent) recomputeEtaTarget(p);
+      tickEta();
     });
 
-    elapsedInterval = setInterval(updateEta, 1000);
+    elapsedInterval = setInterval(tickEta, 1000);
 
     try {
       const result = await invoke('start_processing', { request: options });
@@ -79,16 +97,10 @@
     if (elapsedInterval) clearInterval(elapsedInterval);
   });
 
-  function updateEta() {
-    if (total === 0 || itemDurations.length === 0) { eta = null; return; }
-    const remaining = total - processed;
-    if (remaining <= 0) { eta = 0; return; }
-    const avgMs = itemDurations.reduce((a, b) => a + b, 0) / itemDurations.length;
-    const elapsedOnCurrent = Date.now() - lastItemTime;
-    // Remaining ≈ avg time per item × items left, minus time already spent on
-    // the in-progress item. Clamp to 0 so we don't show negative ETAs when an
-    // item runs longer than the rolling average.
-    eta = Math.max(0, (remaining * avgMs - elapsedOnCurrent) / 1000);
+  function tickEta() {
+    if (etaTargetSec === null) { eta = null; return; }
+    const elapsedSec = (Date.now() - lastItemTime) / 1000;
+    eta = Math.max(0, etaTargetSec - elapsedSec);
   }
 
   async function scrollLog() {
@@ -117,7 +129,7 @@
 
     <!-- Phase pips -->
     <div class="phases">
-      {#each Array(PHASE_COUNT) as _, i}
+      {#each Array(phaseCount) as _, i}
         <div
           class="phase-pip"
           class:done={i + 1 < phase}
@@ -130,7 +142,7 @@
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
       <span style="font-weight:700;font-size:14px">{phaseLabel ? $t(phaseLabel) : '…'}</span>
       <span class="muted" style="font-size:12px">
-        {$t('phase_label')} {phase || '…'} / {PHASE_COUNT}
+        {$t('phase_label')} {phase || '…'} / {phaseCount}
       </span>
     </div>
 

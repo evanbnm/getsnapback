@@ -6,7 +6,7 @@ pub mod overlay_vid;
 pub mod scan;
 pub mod sidecar;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
@@ -38,6 +38,7 @@ pub struct ProcessorOptions {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProgressEvent {
     pub phase: u8,
+    pub total_phases: u8,
     pub phase_label: String,
     pub processed: u64,
     pub total: u64,
@@ -98,8 +99,6 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
     let mains_with_overlay: HashSet<PathBuf> =
         pairs.iter().map(|(m, _)| m.path.clone()).collect();
 
-    let total_mains = files.iter().filter(|f| f.role == FileRole::Main).count() as u64;
-
     let mut summary = ProcessorSummary {
         photos_dated: 0,
         videos_dated: 0,
@@ -111,27 +110,79 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         output_path: out_dir.clone(),
     };
 
-    // ── Phase 1 — Non-overlay mains: copy + date ──────────────────────────────
-    on_progress(ProgressEvent {
-        phase: 1,
-        phase_label: "phase_dating".to_string(),
-        processed: 0,
-        total: total_mains,
-        current_file: None,
-    });
+    // ── Pre-pass: content-hash dedup on inputs ────────────────────────────────
+    // Catches photos/videos that were copy-pasted then renamed (different UUID
+    // or date prefix). We hash raw input bytes, so the comparison is robust to
+    // any later EXIF/QuickTime rewriting we do.
+    let mains: Vec<&SnapFile> = files.iter().filter(|f| f.role == FileRole::Main).collect();
+    let mut by_hash: HashMap<String, Vec<&SnapFile>> = HashMap::new();
+    for snap in &mains {
+        match dedup::file_hash(&snap.path) {
+            Ok(h) => by_hash.entry(h).or_default().push(snap),
+            Err(_) => {} // skip unreadable; let later phases surface the error
+        }
+    }
+    let mut input_duplicates: HashSet<PathBuf> = HashSet::new();
+    for group in by_hash.values() {
+        if group.len() < 2 { continue; }
+        let keep = group
+            .iter()
+            .min_by_key(|f| file_name(&f.path))
+            .unwrap();
+        for f in group {
+            if f.path != keep.path {
+                input_duplicates.insert(f.path.clone());
+                summary.dedup_content += 1;
+            }
+        }
+    }
 
+    // Drop pairs whose main is a duplicate; the overlay alone is useless.
+    let pairs: Vec<(&SnapFile, &SnapFile)> = pairs
+        .into_iter()
+        .filter(|(m, _)| !input_duplicates.contains(&m.path))
+        .collect();
+
+    // ── Phase plan ────────────────────────────────────────────────────────────
+    let total_phases: u8 = if options.overlay_videos { 5 } else { 4 };
+    let video_overlay_phase: Option<u8> = if options.overlay_videos { Some(3) } else { None };
+    let dedup_content_phase: u8 = if options.overlay_videos { 4 } else { 3 };
+    let dedup_uuid_phase: u8 = if options.overlay_videos { 5 } else { 4 };
+
+    // When video overlay compositing is disabled, video mains-with-overlay are
+    // processed alongside standalone mains in phase 1 (just copy + date).
     let standalone_mains: Vec<&SnapFile> = files
         .iter()
-        .filter(|f| f.role == FileRole::Main && !mains_with_overlay.contains(&f.path))
+        .filter(|f| {
+            if f.role != FileRole::Main { return false; }
+            if input_duplicates.contains(&f.path) { return false; }
+            let has_overlay = mains_with_overlay.contains(&f.path);
+            if !has_overlay { return true; }
+            // Has an overlay: include video mains in phase 1 when video overlay is off.
+            !options.overlay_videos && f.kind == FileKind::Video
+        })
         .collect();
+
+    let phase1_total = standalone_mains.len() as u64;
+
+    // ── Phase 1 — Mains without overlay processing: copy + date ───────────────
+    on_progress(ProgressEvent {
+        phase: 1,
+        total_phases,
+        phase_label: "phase_dating".to_string(),
+        processed: 0,
+        total: phase1_total,
+        current_file: None,
+    });
 
     for (i, snap) in standalone_mains.iter().enumerate() {
         let fname = file_name(&snap.path);
         on_progress(ProgressEvent {
             phase: 1,
+            total_phases,
             phase_label: "phase_dating".to_string(),
             processed: i as u64,
-            total: total_mains,
+            total: phase1_total,
             current_file: Some(fname.clone()),
         });
 
@@ -163,6 +214,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
 
     on_progress(ProgressEvent {
         phase: 2,
+        total_phases,
         phase_label: "phase_overlay_photo".to_string(),
         processed: 0,
         total: photo_pairs.len() as u64,
@@ -173,6 +225,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         let fname = file_name(&main.path);
         on_progress(ProgressEvent {
             phase: 2,
+            total_phases,
             phase_label: "phase_overlay_photo".to_string(),
             processed: i as u64,
             total: photo_pairs.len() as u64,
@@ -207,64 +260,65 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         }
     }
 
-    // ── Phase 2b — Video overlays ─────────────────────────────────────────────
-    let video_pairs: Vec<_> = pairs
-        .iter()
-        .filter(|(m, _)| m.kind == FileKind::Video)
-        .collect();
+    // ── Phase 2b — Video overlays (only when enabled) ─────────────────────────
+    if let Some(phase_num) = video_overlay_phase {
+        let video_pairs: Vec<_> = pairs
+            .iter()
+            .filter(|(m, _)| m.kind == FileKind::Video)
+            .collect();
 
-    on_progress(ProgressEvent {
-        phase: 3,
-        phase_label: "phase_overlay_video".to_string(),
-        processed: 0,
-        total: video_pairs.len() as u64,
-        current_file: None,
-    });
-
-    for (i, (main, overlay)) in video_pairs.iter().enumerate() {
-        let fname = file_name(&main.path);
         on_progress(ProgressEvent {
-            phase: 3,
+            phase: phase_num,
+            total_phases,
             phase_label: "phase_overlay_video".to_string(),
-            processed: i as u64,
+            processed: 0,
             total: video_pairs.len() as u64,
-            current_file: Some(fname.clone()),
+            current_file: None,
         });
 
-        if !options.overlay_videos {
-            if let Err(e) = copy_and_date(main, out_dir, &sidecars) {
-                summary.errors.push(format!("{fname}: {e}"));
-            }
-            continue;
-        }
+        for (i, (main, overlay)) in video_pairs.iter().enumerate() {
+            let fname = file_name(&main.path);
+            on_progress(ProgressEvent {
+                phase: phase_num,
+                total_phases,
+                phase_label: "phase_overlay_video".to_string(),
+                processed: i as u64,
+                total: video_pairs.len() as u64,
+                current_file: Some(fname.clone()),
+            });
 
-        let dst = out_dir.join(&fname);
-        match overlay_vid::composite(&main.path, &overlay.path, &dst, &sidecars) {
-            Ok(true) => {
-                if let Err(e) = date::copy_video_dates(&main.path, &dst, &sidecars) {
-                    summary.errors.push(format!("{fname} (copy dates): {e}"));
-                } else {
-                    summary.overlays_video += 1;
+            let dst = out_dir.join(&fname);
+            match overlay_vid::composite(&main.path, &overlay.path, &dst, &sidecars) {
+                Ok(true) => {
+                    if let Err(e) = date::copy_video_dates(&main.path, &dst, &sidecars) {
+                        summary.errors.push(format!("{fname} (copy dates): {e}"));
+                    } else {
+                        summary.overlays_video += 1;
+                    }
                 }
-            }
-            Ok(false) => {
-                summary.errors.push(format!(
-                    "{fname}: incrustation vidéo échouée, snap conservé tel quel"
-                ));
-                if let Err(e) = copy_and_date(main, out_dir, &sidecars) {
-                    summary.errors.push(format!("{fname}: {e}"));
+                Ok(false) => {
+                    summary.errors.push(format!(
+                        "{fname}: incrustation vidéo échouée, snap conservé tel quel"
+                    ));
+                    if let Err(e) = copy_and_date(main, out_dir, &sidecars) {
+                        summary.errors.push(format!("{fname}: {e}"));
+                    }
                 }
-            }
-            Err(e) => {
-                summary.errors.push(format!("{fname} (overlay vidéo): {e}"));
-                let _ = copy_and_date(main, out_dir, &sidecars);
+                Err(e) => {
+                    summary.errors.push(format!("{fname} (overlay vidéo): {e}"));
+                    let _ = copy_and_date(main, out_dir, &sidecars);
+                }
             }
         }
     }
 
-    // ── Phase 3 — Dedup content ───────────────────────────────────────────────
+    // ── Phase N-1 — Dedup content (residual, on outputs) ──────────────────────
+    // Input-level dedup already removed copy-paste duplicates. This second
+    // pass catches outputs that became identical after processing (e.g. two
+    // different inputs that produced the same composited result).
     on_progress(ProgressEvent {
-        phase: 4,
+        phase: dedup_content_phase,
+        total_phases,
         phase_label: "phase_dedup_content".to_string(),
         processed: 0,
         total: 0,
@@ -288,9 +342,10 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         Err(e) => summary.errors.push(format!("dedup content scan: {e}")),
     }
 
-    // ── Phase 4 — Dedup UUID ──────────────────────────────────────────────────
+    // ── Phase N — Dedup UUID ──────────────────────────────────────────────────
     on_progress(ProgressEvent {
-        phase: 5,
+        phase: dedup_uuid_phase,
+        total_phases,
         phase_label: "phase_dedup_uuid".to_string(),
         processed: 0,
         total: 0,
