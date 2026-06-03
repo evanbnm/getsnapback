@@ -42,12 +42,6 @@ function Nav() {
           <span>GetSnapBack</span>
         </a>
         <div className="nav-right">
-          <a className="nav-link" href="#how">
-            {t("nav.how")}
-          </a>
-          <a className="nav-link" href="#download">
-            {t("nav.download")}
-          </a>
           <a
             className="pill"
             href="https://github.com/evanbnm/getsnapback"
@@ -84,10 +78,6 @@ function Hero({ assets }: { assets: ReleaseAssets }) {
     <header className="hero" id="top">
       <div className="wrap hero-grid">
         <div>
-          <span className="badge rise" data-anim="h0">
-            <span className="dot" />
-            {t("hero.badge")} {assets.tag}
-          </span>
           <h1 className="h1 rise" data-anim="h1">
             {t("hero.t1")}
             <br />
@@ -251,12 +241,20 @@ function Support() {
               </h2>
               <p>{t("support.body")}</p>
               <a
-                className="btn btn-primary support-cta"
+                className="coffee-pill big support-cta"
                 href={BMC_URL}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <CoffeeIcon width={17} height={17} /> {t("support.cta")}
+                <span className="cup">
+                  <span className="steam" aria-hidden>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <CoffeeIcon width={22} height={22} />
+                </span>
+                <span>{t("support.cta")}</span>
               </a>
               <p className="support-note">{t("support.note")}</p>
             </div>

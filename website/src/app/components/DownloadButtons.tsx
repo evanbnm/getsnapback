@@ -67,8 +67,6 @@ export default function DownloadButtons({
       <div className="dl-meta">
         <span>{assets.tag}</span>
         <span>·</span>
-        <span>{t("dl.free")}</span>
-        <span>·</span>
         <a
           className="link"
           href="https://github.com/evanbnm/getsnapback/releases"

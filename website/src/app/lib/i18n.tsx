@@ -15,7 +15,7 @@ const DICT: Record<Lang, Record<string, string>> = {
   en: {
     "nav.how": "How it works",
     "nav.download": "Download",
-    "nav.coffee": "Coffee",
+    "nav.coffee": "Buy me a coffee",
     "nav.coffeeAria": "Buy me a coffee",
     "hero.badge": "Free · open source ·",
     "hero.t1": "Save your",
@@ -27,7 +27,6 @@ const DICT: Record<Lang, Record<string, string>> = {
     "hero.sub.post":
       ", baking your overlays, captions and stickers right back in.",
     "dl.for": "Download for",
-    "dl.free": "free forever",
     "dl.all": "all versions →",
     "how.eyebrow": "how it works",
     "how.title": "Three clicks. No upload. Done.",
@@ -94,8 +93,8 @@ const DICT: Record<Lang, Record<string, string>> = {
   fr: {
     "nav.how": "Comment ça marche",
     "nav.download": "Télécharger",
-    "nav.coffee": "Café",
-    "nav.coffeeAria": "M'offrir un café",
+    "nav.coffee": "Offrez-moi un café",
+    "nav.coffeeAria": "Offrez-moi un café",
     "hero.badge": "Gratuit · open source ·",
     "hero.t1": "Enregistrez vos",
     "hero.t2": "souvenirs à",
@@ -106,7 +105,6 @@ const DICT: Record<Lang, Record<string, string>> = {
     "hero.sub.post":
       ", en réincrustant vos dessins, légendes et stickers.",
     "dl.for": "Télécharger pour",
-    "dl.free": "gratuit à vie",
     "dl.all": "toutes les versions →",
     "how.eyebrow": "comment ça marche",
     "how.title": "Trois clics. Aucun envoi. Terminé.",
@@ -151,7 +149,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     "support.title": "Cette app vous a aidé ?",
     "support.body":
       "GetSnapBack est gratuit et le restera. Si elle vous a aidé, un café m'aide à continuer.",
-    "support.cta": "M'offrir un café",
+    "support.cta": "Offrez-moi un café",
     "support.note": "Hébergé par Buy Me a Coffee. Don ponctuel, sans compte.",
     "foot.tagline": "· licence MIT · fait pour les souvenirs",
     "foot.source": "source",

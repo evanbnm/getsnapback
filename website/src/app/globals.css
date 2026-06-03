@@ -188,9 +188,38 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
 
 /* hide the label on small screens, keep the cup */
 @media (max-width: 640px) {
-  .coffee-pill .coffee-label { display: none; }
-  .coffee-pill { padding: 7px 10px; }
+  .coffee-pill:not(.big) .coffee-label { display: none; }
+  .coffee-pill:not(.big) { padding: 7px 10px; }
 }
+
+/* Big variant — used in the support section. Same pink/steam/wiggle vocabulary
+   as the header pill, just scaled up so it can carry the CTA visually. */
+.coffee-pill.big {
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 14px 22px 14px 20px;
+  gap: 12px;
+  border-radius: var(--radius);
+  box-shadow: 0 5px 0 var(--color-text);
+}
+.coffee-pill.big:hover {
+  transform: translate(-1px, -3px);
+  box-shadow: 0 8px 0 var(--color-text);
+}
+.coffee-pill.big:active {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--color-text);
+}
+.coffee-pill.big .steam {
+  top: -12px;
+  gap: 3px;
+}
+.coffee-pill.big .steam i {
+  width: 3px;
+  height: 10px;
+}
+.coffee-pill.big .cup { transform-origin: 50% 85%; }
 
 /* ---------- Cards / panels ---------- */
 .card {
