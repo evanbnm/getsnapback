@@ -18,20 +18,45 @@
   let logs        = [];
   let logEl;
 
-  let startTime = null;
   let eta       = null;
   let elapsedInterval = null;
   let unlisten  = null;
 
-  onMount(async () => {
-    startTime = Date.now();
+  // ETA tracking — scoped to the current phase, with a moving window of recent
+  // item durations so a slow item doesn't make the ETA spike between completions.
+  const ETA_WINDOW = 10;
+  let prevPhase = 0;
+  let prevProcessed = 0;
+  let lastItemTime = null;      // timestamp of last processed-counter increment
+  let itemDurations = [];        // ms per completed item, current phase only
 
+  onMount(async () => {
     unlisten = await listen('progress', (event) => {
-      const p  = event.payload;
-      phase      = p.phase;
+      const p = event.payload;
+
+      if (p.phase !== prevPhase) {
+        // New phase — reset all ETA state
+        prevPhase = p.phase;
+        prevProcessed = p.processed;
+        lastItemTime = Date.now();
+        itemDurations = [];
+      } else if (p.processed > prevProcessed) {
+        // One (or more) items just completed
+        const now = Date.now();
+        const completed = p.processed - prevProcessed;
+        const perItem = (now - lastItemTime) / completed;
+        for (let i = 0; i < completed; i++) itemDurations.push(perItem);
+        if (itemDurations.length > ETA_WINDOW) {
+          itemDurations = itemDurations.slice(-ETA_WINDOW);
+        }
+        lastItemTime = now;
+        prevProcessed = p.processed;
+      }
+
+      phase = p.phase;
       phaseLabel = p.phase_label;
-      processed  = p.processed;
-      total      = p.total;
+      processed = p.processed;
+      total = p.total;
       currentFile = p.current_file ?? null;
       updateEta();
     });
@@ -55,10 +80,15 @@
   });
 
   function updateEta() {
-    if (!startTime || processed === 0 || total === 0) { eta = null; return; }
-    const elapsed = (Date.now() - startTime) / 1000;
-    const rate    = processed / elapsed;
-    eta = rate > 0 ? (total - processed) / rate : null;
+    if (total === 0 || itemDurations.length === 0) { eta = null; return; }
+    const remaining = total - processed;
+    if (remaining <= 0) { eta = 0; return; }
+    const avgMs = itemDurations.reduce((a, b) => a + b, 0) / itemDurations.length;
+    const elapsedOnCurrent = Date.now() - lastItemTime;
+    // Remaining ≈ avg time per item × items left, minus time already spent on
+    // the in-progress item. Clamp to 0 so we don't show negative ETAs when an
+    // item runs longer than the rolling average.
+    eta = Math.max(0, (remaining * avgMs - elapsedOnCurrent) / 1000);
   }
 
   async function scrollLog() {
