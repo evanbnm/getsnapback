@@ -88,8 +88,8 @@ jobs:
         shell: pwsh
         run: |
           $html = (Invoke-WebRequest "https://exiftool.org" -UseBasicParsing).Content
-          if ($html -match 'href="(exiftool-[\d.]+_64\.zip)"') {
-            $zipName = $Matches[1]
+          if ($html -match 'exiftool-([\d.]+)_64\.zip') {
+            $zipName = "exiftool-$($Matches[1])_64.zip"
           } else {
             throw "Could not find exiftool Windows download link on exiftool.org"
           }
