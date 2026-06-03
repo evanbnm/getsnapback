@@ -65,17 +65,44 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
-          $html = (Invoke-WebRequest "https://exiftool.org" -UseBasicParsing -TimeoutSec 30 -MaximumRetryCount 3 -RetryIntervalSec 10).Content
-          if ($html -match 'exiftool-([\d.]+)_64\.zip') {
-            $zipName = "exiftool-$($Matches[1])_64.zip"
-          } else {
-            throw "Could not find exiftool Windows download link on exiftool.org"
+          # exiftool.org is a small static server (Phil Harvey's personal site)
+          # that occasionally times out from GitHub runners. Use curl.exe (more
+          # reliable than Invoke-WebRequest for flaky hosts) with aggressive
+          # retries on BOTH the homepage fetch and the zip download. Also keep
+          # a known-good version as a fallback when the homepage scrape fails.
+          $FALLBACK_VERSION = "13.59"
+          $homepage = ""
+          for ($i = 1; $i -le 6; $i++) {
+            try {
+              $homepage = & curl.exe --silent --show-error --location --fail `
+                --max-time 60 --retry 4 --retry-delay 10 --retry-all-errors `
+                --connect-timeout 30 "https://exiftool.org/" | Out-String
+              if ($LASTEXITCODE -eq 0 -and $homepage) { break }
+            } catch {
+              Write-Host "Homepage fetch attempt $i failed: $_"
+            }
+            if ($i -lt 6) { Start-Sleep -Seconds (15 * $i) }
           }
+          if ($homepage -match 'exiftool-([\d.]+)_64\.zip') {
+            $version = $Matches[1]
+            Write-Host "Detected exiftool version $version from homepage"
+          } else {
+            $version = $FALLBACK_VERSION
+            Write-Host "Could not scrape version, falling back to known-good $version"
+          }
+          $zipName = "exiftool-${version}_64.zip"
           Write-Host "Downloading https://exiftool.org/$zipName"
-          Invoke-WebRequest "https://exiftool.org/$zipName" -OutFile exiftool.zip -TimeoutSec 60 -MaximumRetryCount 3 -RetryIntervalSec 10
+          & curl.exe --silent --show-error --location --fail `
+            --max-time 240 --retry 8 --retry-delay 15 --retry-all-errors `
+            --connect-timeout 30 --output exiftool.zip "https://exiftool.org/$zipName"
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path exiftool.zip)) {
+            throw "Failed to download exiftool $version from exiftool.org after retries"
+          }
           Expand-Archive exiftool.zip -DestinationPath exiftool_dir -Force
           $exe = Get-ChildItem -Path exiftool_dir -Recurse -Filter "*.exe" | Select-Object -First 1
+          if (-not $exe) { throw "exiftool.exe not found inside extracted archive" }
           Copy-Item $exe.FullName "src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
+          Write-Host "exiftool ready at src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
 
       - name: Bundle exiftool (Linux)
         if: matrix.platform == 'ubuntu-22.04'
