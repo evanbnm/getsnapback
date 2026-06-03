@@ -82,14 +82,22 @@ jobs:
             "$EXIFTOOL_BIN"
           chmod +x src-tauri/binaries/exiftool-x86_64-apple-darwin
 
-      # Windows: install via Chocolatey (avoids hardcoded version URL).
+      # Windows: discover current version from exiftool.org and download directly.
       - name: Install exiftool (Windows)
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
-          choco install exiftool -y --no-progress
-          $exiftool = (Get-Command exiftool).Source
-          Copy-Item $exiftool "src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
+          $html = (Invoke-WebRequest "https://exiftool.org" -UseBasicParsing).Content
+          if ($html -match 'href="(exiftool-[\d.]+_64\.zip)"') {
+            $zipName = $Matches[1]
+          } else {
+            throw "Could not find exiftool Windows download link on exiftool.org"
+          }
+          Write-Host "Downloading https://exiftool.org/$zipName"
+          Invoke-WebRequest "https://exiftool.org/$zipName" -OutFile exiftool.zip
+          Expand-Archive exiftool.zip -DestinationPath exiftool_dir -Force
+          $exe = Get-ChildItem -Path exiftool_dir -Recurse -Filter "*.exe" | Select-Object -First 1
+          Copy-Item $exe.FullName "src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
 
       # Linux: Perl is universally available; the plain script works fine.
       - name: Install exiftool (Linux)
