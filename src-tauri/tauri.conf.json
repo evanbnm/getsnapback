@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Snap Date Fixer",
+  "productName": "Snapback",
   "version": "0.2.0",
-  "identifier": "app.snapdatefixer.desktop",
+  "identifier": "app.snapback.desktop",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Snap Date Fixer",
+        "title": "Snapback",
         "width": 780,
         "height": 560,
         "resizable": false,

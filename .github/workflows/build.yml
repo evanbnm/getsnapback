@@ -131,18 +131,18 @@ jobs:
           # TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "Snap Date Fixer ${{ github.ref_name }}"
+          releaseName: "Snapback ${{ github.ref_name }}"
           releaseBody: |
             ### macOS — premier lancement obligatoire
             L'app n'étant pas signée par un certificat Apple Developer ($99/an),
             macOS affiche « est endommagé » au premier lancement.
 
             **Procédure :**
-            1. Ouvrez le DMG et glissez **Snap Date Fixer** dans **Applications**.
+            1. Ouvrez le DMG et glissez **Snapback** dans **Applications**.
             2. Ouvrez **Terminal** (Spotlight → « Terminal »).
             3. Collez et exécutez la commande suivante :
                ```
-               xattr -cr "/Applications/Snap Date Fixer.app"
+               xattr -cr "/Applications/Snapback.app"
                ```
             4. Lancez l'app normalement. Les ouvertures suivantes ne demandent
                plus rien.
