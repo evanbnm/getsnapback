@@ -107,14 +107,18 @@ fn resolve_sidecars(app: &AppHandle, need_ffmpeg: bool) -> Result<SidecarPaths, 
 }
 
 fn find_binary(bin_dir: &std::path::Path, name: &str, triple: &str) -> Option<PathBuf> {
-    // Tauri convention: `<name>-<target-triple>[.exe]`
-    let suffixed = if cfg!(windows) {
-        format!("{name}-{triple}.exe")
-    } else {
-        format!("{name}-{triple}")
-    };
-    let candidate = bin_dir.join(&suffixed);
-    if candidate.exists() { Some(candidate) } else { None }
+    // Tauri v2 strips the triple suffix in the final bundle (exiftool-aarch64-apple-darwin
+    // becomes just "exiftool" in Contents/MacOS/). Check the plain name first so the
+    // production bundle works, then the suffixed name for dev/manual placement.
+    let ext = if cfg!(windows) { ".exe" } else { "" };
+    for candidate_name in &[
+        format!("{name}{ext}"),
+        format!("{name}-{triple}{ext}"),
+    ] {
+        let candidate = bin_dir.join(candidate_name);
+        if candidate.exists() { return Some(candidate); }
+    }
+    None
 }
 
 fn which(name: &str) -> Option<PathBuf> {
