@@ -556,3 +556,124 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
   .rise, .pop { animation: none !important; opacity: 1 !important; transform: none !important; }
   .dot::after, .prog-fill, .f1, .f2, .f3 { animation: none !important; }
 }
+
+/* ============================================================
+   Mobile / responsive
+   ============================================================ */
+@media (max-width: 768px) {
+  .wrap { padding: 0 18px; }
+
+  /* nav: tighter, brand keeps weight, github + coffee + lang fit */
+  .nav { padding: 14px 0; }
+  .nav-right { gap: 10px; }
+  .brand span { font-size: 14px; }
+  .brand img { width: 28px; height: 28px; }
+  .pill { padding: 5px 11px; font-size: 10.5px; }
+  .lang-toggle { padding: 2px; }
+  .lang-toggle button { padding: 4px 9px; font-size: 10.5px; }
+
+  /* hero copy */
+  .hero { padding: 14px 0 36px; }
+  .h1 {
+    font-size: clamp(2.2rem, 9.5vw, 3.4rem);
+    line-height: 1;
+    margin: 18px 0 16px;
+  }
+  .subtitle { font-size: 1rem; margin-bottom: 24px; max-width: 100%; }
+
+  /* memories collage stays centred without overflowing badges off-screen */
+  .memories-stage { min-height: 420px; }
+  .deck { width: 260px; height: 332px; }
+  .polaroid { border-radius: 16px; padding: 11px 11px 0; }
+  .polaroid .photo { height: 240px; border-radius: 9px; }
+  .polaroid .cap { font-size: 15px; padding: 9px 4px 11px; }
+  .mem-badge.m1 { top: 4%; right: 2%; }
+  .mem-badge.m2 { bottom: 6%; left: 2%; }
+  .mem-doodle.d1, .mem-doodle.d2 { opacity: .85; }
+
+  /* download cluster + buttons */
+  .dl-buttons { gap: 9px; }
+  .dl-buttons .btn { padding: 12px 16px; font-size: 14px; }
+
+  /* sections: less vertical air */
+  .section { padding: 16px 0; }
+  .section-pad { padding: 36px 0; }
+
+  /* app showcase */
+  .appshow { padding: 16px 0 40px; }
+  .appshow-grid { gap: 36px; }
+
+  /* features grid wraps cleanly, less internal padding */
+  .feat { padding: 22px 22px 24px; }
+  .feat h3 { font-size: 18px; margin-bottom: 8px; }
+  .feat-tile { width: 44px; height: 44px; border-radius: 12px; margin-bottom: 14px; }
+
+  /* CTA card: shrink padding so the content breathes */
+  .cta-card { padding: 32px 22px; }
+  .cta-card .h2 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
+  .cta-sub { font-size: 14px; margin-top: 12px; }
+  .deco-teal { width: 220px; height: 220px; top: -80px; right: -60px; }
+  .deco-pink { width: 200px; height: 200px; bottom: -100px; left: -60px; }
+  .cta-grid { gap: 28px; }
+
+  /* macOS unblock command needs to wrap on narrow widths */
+  .note { font-size: 11.5px; }
+  .note-code {
+    white-space: normal;
+    word-break: break-all;
+    font-size: 10.5px;
+    padding: 1px 5px;
+  }
+
+  /* support card mirrors CTA card sizing */
+  .support-card { padding: 32px 22px; }
+  .support-grid { gap: 20px; }
+  .support-glyph { width: 64px; height: 64px; border-radius: 18px; }
+  .support-glyph svg { width: 30px; height: 30px; }
+  .support-copy p { font-size: 14px; max-width: 100%; }
+  .coffee-pill.big {
+    padding: 12px 18px 12px 16px;
+    font-size: 14px;
+    gap: 10px;
+    border-radius: var(--radius-sm);
+  }
+  .coffee-pill.big .steam { top: -10px; }
+  .coffee-pill.big .steam i { width: 2.5px; height: 8px; }
+
+  /* footer compact */
+  .footer { padding: 24px 0 36px; }
+  .foot-rule { margin-bottom: 22px; }
+  .foot-inner { gap: 18px; }
+  .foot-links { gap: 18px; font-size: 12.5px; }
+}
+
+@media (max-width: 480px) {
+  .wrap { padding: 0 14px; }
+
+  /* drop the visible brand label on very narrow screens — keep the icon alone */
+  .brand span { display: none; }
+
+  /* even tighter title leading on tiny phones */
+  .h1 { font-size: clamp(2rem, 11vw, 2.8rem); }
+
+  /* nudge nav gap to keep everything on one line */
+  .nav-right { gap: 8px; }
+  .pill { padding: 4px 9px; }
+
+  /* shrink the collage just a touch so floating badges stay onscreen */
+  .deck { width: 230px; height: 296px; }
+  .polaroid .photo { height: 213px; }
+  .polaroid .cap { font-size: 14px; }
+  .memories-stage { min-height: 380px; }
+
+  /* download buttons stack vertically when the row would overflow */
+  .dl-buttons .btn { flex: 1 1 100%; }
+
+  /* app preview window stays comfortable but trims internal padding */
+  .win-body { padding: 18px 18px 22px; }
+  .stats { gap: 8px; }
+
+  /* let the CTA + support cards reach the screen edges */
+  .cta-card { padding: 28px 18px; }
+  .support-card { padding: 28px 18px; }
+}
