@@ -1,0 +1,121 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest      # Apple Silicon
+            args: "--target aarch64-apple-darwin"
+            target: aarch64-apple-darwin
+          - platform: macos-13          # Intel
+            args: "--target x86_64-apple-darwin"
+            target: x86_64-apple-darwin
+          - platform: windows-latest
+            args: ""
+            target: x86_64-pc-windows-msvc
+          - platform: ubuntu-22.04
+            args: ""
+            target: x86_64-unknown-linux-gnu
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Node ──────────────────────────────────────────────────────────────
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: "npm"
+
+      # ── Rust ──────────────────────────────────────────────────────────────
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      # ── Linux system deps ─────────────────────────────────────────────────
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev
+
+      # ── Sidecar binaries ──────────────────────────────────────────────────
+
+      # macOS: PAR-pack exiftool into a standalone Mach-O binary (no Perl dependency).
+      - name: Build standalone exiftool (macOS)
+        if: startsWith(matrix.platform, 'macos')
+        run: |
+          brew install exiftool
+          # Install cpanminus then PAR::Packer against the runner's Perl.
+          curl -fsSL https://cpanmin.us | perl - App::cpanminus 2>&1
+          ~/perl5/bin/cpanm --notest PAR::Packer 2>&1
+          EXIFTOOL_LIB="$(brew --prefix exiftool)/libexec/lib/perl5"
+          EXIFTOOL_BIN="$(brew --prefix exiftool)/libexec/bin/exiftool"
+          # Run pp through the correct Perl to avoid version-mismatch errors.
+          perl \
+            -I ~/perl5/lib/perl5 \
+            -I ~/perl5/lib/perl5/$(perl -MConfig -e 'print $Config{archname}') \
+            ~/perl5/bin/pp \
+            -I "$EXIFTOOL_LIB" \
+            -o src-tauri/binaries/exiftool-${{ matrix.target }} \
+            "$EXIFTOOL_BIN"
+          chmod +x src-tauri/binaries/exiftool-${{ matrix.target }}
+
+      # Windows: exiftool.org ships a ready-made standalone .exe.
+      - name: Download exiftool (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest "https://exiftool.org/exiftool-13.55_64.zip" -OutFile exiftool.zip
+          Expand-Archive exiftool.zip -DestinationPath exiftool_dir
+          Copy-Item "exiftool_dir\exiftool(-k).exe" "src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
+
+      # Linux: Perl is universally available; the plain script works fine.
+      - name: Install exiftool (Linux)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get install -y libimage-exiftool-perl
+          cp "$(which exiftool)" src-tauri/binaries/exiftool-x86_64-unknown-linux-gnu
+          chmod +x src-tauri/binaries/exiftool-x86_64-unknown-linux-gnu
+
+      # ── Build ─────────────────────────────────────────────────────────────
+      - name: Install npm dependencies
+        run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Uncomment when you have signing certificates:
+          # APPLE_CERTIFICATE:            ${{ secrets.APPLE_CERTIFICATE }}
+          # APPLE_CERTIFICATE_PASSWORD:   ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          # APPLE_ID:                     ${{ secrets.APPLE_ID }}
+          # APPLE_PASSWORD:               ${{ secrets.APPLE_PASSWORD }}
+          # APPLE_TEAM_ID:                ${{ secrets.APPLE_TEAM_ID }}
+          # TAURI_SIGNING_PRIVATE_KEY:    ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          # TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "Snap Date Fixer ${{ github.ref_name }}"
+          releaseBody: |
+            Voir le README pour le premier lancement (Gatekeeper / SmartScreen).
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
