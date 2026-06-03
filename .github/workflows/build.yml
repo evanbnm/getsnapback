@@ -59,34 +59,34 @@ jobs:
 
       # ── Sidecar binaries ──────────────────────────────────────────────────
 
-      # macOS: PAR-pack exiftool into a standalone Mach-O binary (no Perl dependency).
-      - name: Build standalone exiftool (macOS)
-        if: startsWith(matrix.platform, 'macos')
+      # macOS ARM: binary already committed — nothing to do.
+      # macOS Intel: PAR-pack exiftool on the macos-13 runner.
+      - name: Build standalone exiftool (macOS Intel)
+        if: matrix.target == 'x86_64-apple-darwin'
         run: |
           brew install exiftool
-          # Install cpanminus then PAR::Packer against the runner's Perl.
-          curl -fsSL https://cpanmin.us | perl - App::cpanminus 2>&1
+          # --local-lib forces cpanm to install into ~/perl5 (avoids path issues on CI).
+          curl -fsSL https://cpanmin.us | perl - --local-lib=~/perl5 App::cpanminus 2>&1
           ~/perl5/bin/cpanm --notest PAR::Packer 2>&1
           EXIFTOOL_LIB="$(brew --prefix exiftool)/libexec/lib/perl5"
           EXIFTOOL_BIN="$(brew --prefix exiftool)/libexec/bin/exiftool"
-          # Run pp through the correct Perl to avoid version-mismatch errors.
           perl \
             -I ~/perl5/lib/perl5 \
             -I ~/perl5/lib/perl5/$(perl -MConfig -e 'print $Config{archname}') \
             ~/perl5/bin/pp \
             -I "$EXIFTOOL_LIB" \
-            -o src-tauri/binaries/exiftool-${{ matrix.target }} \
+            -o src-tauri/binaries/exiftool-x86_64-apple-darwin \
             "$EXIFTOOL_BIN"
-          chmod +x src-tauri/binaries/exiftool-${{ matrix.target }}
+          chmod +x src-tauri/binaries/exiftool-x86_64-apple-darwin
 
-      # Windows: exiftool.org ships a ready-made standalone .exe.
-      - name: Download exiftool (Windows)
+      # Windows: install via Chocolatey (avoids hardcoded version URL).
+      - name: Install exiftool (Windows)
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
-          Invoke-WebRequest "https://exiftool.org/exiftool-13.55_64.zip" -OutFile exiftool.zip
-          Expand-Archive exiftool.zip -DestinationPath exiftool_dir
-          Copy-Item "exiftool_dir\exiftool(-k).exe" "src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
+          choco install exiftool -y --no-progress
+          $exiftool = (Get-Command exiftool).Source
+          Copy-Item $exiftool "src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
 
       # Linux: Perl is universally available; the plain script works fine.
       - name: Install exiftool (Linux)
