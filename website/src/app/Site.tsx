@@ -21,12 +21,11 @@ export default function Site({ assets }: { assets: ReleaseAssets }) {
     <LangProvider>
       <Nav />
       <Hero assets={assets} />
-      <HowItWorks />
       <AppShowcase />
       <WhatItDoes />
       <DownloadCTA assets={assets} />
       <Support />
-      <Footer version={assets.tag} />
+      <Footer />
     </LangProvider>
   );
 }
@@ -102,39 +101,6 @@ function Hero({ assets }: { assets: ReleaseAssets }) {
   );
 }
 
-function HowItWorks() {
-  const { t } = useT();
-  const steps: Array<[string, string, string]> = [
-    ["1", t("how.s1.t"), t("how.s1.b")],
-    ["2", t("how.s2.t"), t("how.s2.b")],
-    ["3", t("how.s3.t"), t("how.s3.b")],
-  ];
-  return (
-    <section className="section" id="how">
-      <div className="wrap">
-        <div className="card how-card">
-          <span className="eyebrow dark">{t("how.eyebrow")}</span>
-          <h2 className="h2" style={{ marginTop: 16 }}>
-            {t("how.title")}
-          </h2>
-          <div className="steps">
-            {steps.map(([n, title, body]) => (
-              <div className="step" key={n}>
-                <div className="step-head">
-                  <div className="step-num">{n}</div>
-                  <div className="step-rule" />
-                </div>
-                <h3>{title}</h3>
-                <p>{body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function AppShowcase() {
   const { t } = useT();
   return (
@@ -167,13 +133,6 @@ function WhatItDoes() {
     <section className="section section-pad">
       <div className="wrap">
         <span className="eyebrow dark">{t("what.eyebrow")}</span>
-        <h2 className="h2" style={{ marginTop: 16, maxWidth: "20ch" }}>
-          {t("what.title.pre")}
-          <em style={{ fontStyle: "italic", fontWeight: 800 }}>
-            {t("what.title.em")}
-          </em>
-          {t("what.title.post")}
-        </h2>
         <div className="feat-grid">
           {feats.map(({ Icon, title, body }) => (
             <div className="feat" key={title}>
@@ -210,11 +169,17 @@ function DownloadCTA({ assets }: { assets: ReleaseAssets }) {
             <div>
               <DownloadButtons assets={assets} />
               <p className="note">
-                {t("cta.note.pre")}
-                <strong>{t("cta.note.strong")}</strong>
-                {t("cta.note.mid")}
-                <em>{t("cta.note.em")}</em>
-                {t("cta.note.post")}
+                <strong>{t("cta.note.intro")}</strong>
+                <br />
+                <strong>{t("cta.note.mac.label")}</strong>
+                {t("cta.note.mac.pre")}
+                <code className="note-code">{t("cta.note.mac.code")}</code>
+                {t("cta.note.mac.post")}
+                <br />
+                <strong>{t("cta.note.win.label")}</strong>
+                {t("cta.note.win.pre")}
+                <em>{t("cta.note.win.em")}</em>
+                {t("cta.note.win.post")}
               </p>
             </div>
           </div>
@@ -256,7 +221,6 @@ function Support() {
                 </span>
                 <span>{t("support.cta")}</span>
               </a>
-              <p className="support-note">{t("support.note")}</p>
             </div>
           </div>
         </div>
@@ -265,7 +229,7 @@ function Support() {
   );
 }
 
-function Footer({ version }: { version: string }) {
+function Footer() {
   const { t } = useT();
   return (
     <footer className="footer">
@@ -275,10 +239,7 @@ function Footer({ version }: { version: string }) {
           <div className="foot-brand">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" />
-            <div>
-              <div className="t">GetSnapBack</div>
-              <div className="s">{version} {t("foot.tagline")}</div>
-            </div>
+            <div className="t">GetSnapBack</div>
           </div>
           <div className="foot-links">
             <a
