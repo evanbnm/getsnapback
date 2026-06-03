@@ -65,14 +65,14 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
-          $html = (Invoke-WebRequest "https://exiftool.org" -UseBasicParsing).Content
+          $html = (Invoke-WebRequest "https://exiftool.org" -UseBasicParsing -TimeoutSec 30 -MaximumRetryCount 3 -RetryIntervalSec 10).Content
           if ($html -match 'exiftool-([\d.]+)_64\.zip') {
             $zipName = "exiftool-$($Matches[1])_64.zip"
           } else {
             throw "Could not find exiftool Windows download link on exiftool.org"
           }
           Write-Host "Downloading https://exiftool.org/$zipName"
-          Invoke-WebRequest "https://exiftool.org/$zipName" -OutFile exiftool.zip
+          Invoke-WebRequest "https://exiftool.org/$zipName" -OutFile exiftool.zip -TimeoutSec 60 -MaximumRetryCount 3 -RetryIntervalSec 10
           Expand-Archive exiftool.zip -DestinationPath exiftool_dir -Force
           $exe = Get-ChildItem -Path exiftool_dir -Recurse -Filter "*.exe" | Select-Object -First 1
           Copy-Item $exe.FullName "src-tauri\binaries\exiftool-x86_64-pc-windows-msvc.exe"
@@ -89,10 +89,7 @@ jobs:
       - name: Bundle ffmpeg (macOS ARM)
         if: matrix.platform == 'macos-latest'
         run: |
-          INFO=$(curl -s https://evermeet.cx/ffmpeg/info/ffmpeg/zip)
-          URL=$(echo "$INFO" | python3 -c "import sys,json; print(json.load(sys.stdin)['download'])")
-          echo "Downloading $URL"
-          curl -L "$URL" -o ffmpeg.zip
+          curl -L https://evermeet.cx/ffmpeg/get/ffmpeg/zip -o ffmpeg.zip
           unzip ffmpeg.zip
           chmod +x ffmpeg
           cp ffmpeg src-tauri/binaries/ffmpeg-aarch64-apple-darwin
@@ -101,10 +98,10 @@ jobs:
         if: matrix.platform == 'windows-latest'
         shell: pwsh
         run: |
-          $release = Invoke-RestMethod "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest"
+          $release = Invoke-RestMethod "https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest" -MaximumRetryCount 3 -RetryIntervalSec 10
           $asset = $release.assets | Where-Object { $_.name -like "*win64-gpl.zip" -and $_.name -notlike "*shared*" } | Select-Object -First 1
           Write-Host "Downloading $($asset.browser_download_url)"
-          Invoke-WebRequest $asset.browser_download_url -OutFile ffmpeg.zip
+          Invoke-WebRequest $asset.browser_download_url -OutFile ffmpeg.zip -TimeoutSec 120 -MaximumRetryCount 3 -RetryIntervalSec 10
           Expand-Archive ffmpeg.zip -DestinationPath ffmpeg_dir -Force
           $exe = Get-ChildItem -Path ffmpeg_dir -Recurse -Filter "ffmpeg.exe" | Select-Object -First 1
           Copy-Item $exe.FullName "src-tauri\binaries\ffmpeg-x86_64-pc-windows-msvc.exe"
