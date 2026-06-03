@@ -133,7 +133,53 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: "Snap Date Fixer ${{ github.ref_name }}"
           releaseBody: |
-            Voir le README pour le premier lancement (Gatekeeper / SmartScreen).
+            ### macOS — premier lancement
+            L'app n'étant pas signée par un certificat Apple Developer ($99/an),
+            macOS affiche « est endommagé » au premier lancement.
+
+            **Solution incluse :** dans le DMG, double-cliquez sur
+            « Ouvrir Snap Date Fixer.command » après avoir glissé l'app dans
+            Applications. Le script débloque l'app et la lance. Les ouvertures
+            suivantes fonctionnent normalement (double-clic sur l'icône).
+
+            ### Windows — premier lancement
+            Sur l'écran « Windows a protégé votre ordinateur » :
+            **Informations complémentaires** → **Exécuter quand même**.
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+      # ── Custom macOS DMG with first-launch unblock script ─────────────────
+      - name: Rebuild macOS DMG with unblock script
+        if: matrix.platform == 'macos-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          brew install create-dmg
+
+          APP_PATH=$(find src-tauri/target -path "*/bundle/macos/*.app" -type d | head -1)
+          OLD_DMG=$(find src-tauri/target -path "*/bundle/dmg/*.dmg" -type f | head -1)
+          DMG_NAME=$(basename "$OLD_DMG")
+          DMG_DIR=$(dirname "$OLD_DMG")
+
+          echo "App:  $APP_PATH"
+          echo "DMG:  $OLD_DMG"
+
+          chmod +x "scripts/dmg/Ouvrir Snap Date Fixer.command"
+
+          rm -f "$OLD_DMG"
+
+          create-dmg \
+            --volname "Snap Date Fixer" \
+            --window-size 620 420 \
+            --icon-size 96 \
+            --icon "Snap Date Fixer.app" 140 180 \
+            --app-drop-link 480 180 \
+            --add-file "Ouvrir Snap Date Fixer.command" \
+              "scripts/dmg/Ouvrir Snap Date Fixer.command" 310 330 \
+            --hide-extension "Snap Date Fixer.app" \
+            "$DMG_DIR/$DMG_NAME" \
+            "$APP_PATH"
+
+          # Replace the DMG that tauri-action already uploaded to the draft release
+          gh release upload "${GITHUB_REF_NAME}" "$DMG_DIR/$DMG_NAME" --clobber

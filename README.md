@@ -49,17 +49,23 @@ Téléchargez la dernière version pour votre système dans la page
 
 ### Premier lancement — avertissements de sécurité
 
-L'app n'est pas (encore) signée par un certificat payant, donc votre système
-peut afficher un avertissement au premier lancement. C'est normal et sans
-danger ; voici comment l'ouvrir :
+L'app n'est pas (encore) signée par un certificat Apple Developer / Microsoft
+payant, donc votre système peut afficher un avertissement au premier
+lancement. C'est normal et sans danger ; voici comment l'ouvrir :
 
-- **macOS** : faites un **clic droit** sur l'app → **Ouvrir** → confirmez
-  **Ouvrir** dans la boîte de dialogue. (Un double-clic simple sera bloqué la
-  première fois.)
+- **macOS** : ouvrez le DMG, glissez l'app dans **Applications**, puis
+  **double-cliquez sur le fichier « Ouvrir Snap Date Fixer.command »** présent
+  dans le DMG. Ce script débloque l'app et la lance. Sans cette étape, macOS
+  affiche « est endommagé » et empêche l'ouverture.
+
+  > Si Terminal affiche un message « Le fichier provient d'Internet »,
+  > faites **clic droit** sur le `.command` → **Ouvrir** → **Ouvrir**.
+
 - **Windows** : sur l'écran *Windows a protégé votre ordinateur*, cliquez sur
   **Informations complémentaires** → **Exécuter quand même**.
 
-Une fois ouverte la première fois, l'app se lance ensuite normalement.
+Une fois ouverte la première fois, l'app se lance ensuite normalement par
+simple double-clic sur son icône.
 
 ---
 
