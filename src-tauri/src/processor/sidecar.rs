@@ -4,6 +4,21 @@ use crate::processor::error::ProcessorError;
 
 pub type Result<T> = std::result::Result<T, ProcessorError>;
 
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+fn make_command(program: &Path) -> Command {
+    let cmd = Command::new(program);
+    #[cfg(windows)]
+    let mut cmd = cmd;
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+    cmd
+}
+
 /// Resolved paths to the external binaries.
 #[derive(Debug, Clone)]
 pub struct SidecarPaths {
@@ -45,7 +60,7 @@ fn which(name: impl AsRef<Path>) -> Option<PathBuf> {
 
 /// Run exiftool with the given arguments. Returns stdout.
 pub fn run_exiftool(paths: &SidecarPaths, args: &[&str]) -> Result<String> {
-    let output = Command::new(&paths.exiftool)
+    let output = make_command(&paths.exiftool)
         .args(args)
         .output()
         .map_err(|e| ProcessorError::io(&paths.exiftool, e))?;
@@ -65,7 +80,7 @@ pub fn run_exiftool(paths: &SidecarPaths, args: &[&str]) -> Result<String> {
 /// Exiftool exits 1 on warnings that are non-fatal; we treat that as ok
 /// and only fail on exit ≥ 2 or missing output.
 pub fn run_exiftool_lenient(paths: &SidecarPaths, args: &[&str]) -> Result<String> {
-    let output = Command::new(&paths.exiftool)
+    let output = make_command(&paths.exiftool)
         .args(args)
         .output()
         .map_err(|e| ProcessorError::io(&paths.exiftool, e))?;
@@ -88,7 +103,7 @@ pub fn run_ffmpeg(paths: &SidecarPaths, args: &[&str]) -> Result<()> {
         ProcessorError::SidecarNotFound("ffmpeg".to_string())
     })?;
 
-    let output = Command::new(ffmpeg)
+    let output = make_command(ffmpeg)
         .args(args)
         .output()
         .map_err(|e| ProcessorError::io(ffmpeg, e))?;
