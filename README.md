@@ -50,16 +50,22 @@ Téléchargez la dernière version pour votre système dans la page
 ### Premier lancement — avertissements de sécurité
 
 L'app n'est pas (encore) signée par un certificat Apple Developer / Microsoft
-payant, donc votre système peut afficher un avertissement au premier
-lancement. C'est normal et sans danger ; voici comment l'ouvrir :
+payant, donc votre système affiche un avertissement au premier lancement.
+C'est normal et sans danger ; voici comment l'ouvrir :
 
-- **macOS** : ouvrez le DMG, glissez l'app dans **Applications**, puis
-  **double-cliquez sur le fichier « Ouvrir Snap Date Fixer.command »** présent
-  dans le DMG. Ce script débloque l'app et la lance. Sans cette étape, macOS
-  affiche « est endommagé » et empêche l'ouverture.
+- **macOS** : sur les versions récentes (Sonoma, Sequoia…) macOS affiche
+  « Snap Date Fixer est endommagé » et empêche l'ouverture. Pour débloquer :
+  1. Glissez l'app du DMG dans **Applications**.
+  2. Ouvrez **Terminal** (Spotlight → « Terminal »).
+  3. Copiez-collez cette commande puis appuyez sur **Entrée** :
+     ```
+     xattr -cr "/Applications/Snap Date Fixer.app"
+     ```
+  4. Lancez l'app normalement (double-clic sur l'icône).
 
-  > Si Terminal affiche un message « Le fichier provient d'Internet »,
-  > faites **clic droit** sur le `.command` → **Ouvrir** → **Ouvrir**.
+  La commande retire l'attribut *quarantine* que macOS pose sur les fichiers
+  téléchargés ; elle ne touche pas au contenu de l'app. À ne faire qu'une
+  seule fois, à l'installation.
 
 - **Windows** : sur l'écran *Windows a protégé votre ordinateur*, cliquez sur
   **Informations complémentaires** → **Exécuter quand même**.
