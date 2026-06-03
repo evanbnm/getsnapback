@@ -85,17 +85,29 @@ export const CoffeeIcon = (p: P) => (
 );
 
 export const LinuxIcon = (p: P) => (
-  // Tux silhouette + iconic orange beak. Eye + feet shapes are sub-paths
-  // declared in opposite winding so fillRule="evenodd" punches them as
-  // "holes" that show the button background through, keeping the icon
-  // legible on both the white outline button and the teal primary button.
-  <svg width="16" height="16" viewBox="0 0 24 24" fillRule="evenodd" clipRule="evenodd" {...p}>
+  // Classic Tux: black body silhouette, white belly + eye patches with
+  // small black pupils, iconic orange beak and feet. Explicit fills
+  // (not currentColor) so Tux keeps his canonical colors on both the
+  // teal primary button and the white outline button.
+  <svg width="16" height="16" viewBox="0 0 24 24" {...p}>
+    {/* body */}
     <path
-      fill="currentColor"
-      d="M12 1.4c-2.1 0-3.6 1.8-3.6 4.2 0 1 .2 1.9.4 2.6-1.4.6-2.5 1.9-2.5 3.7 0 1.1.5 2.1 1.2 2.8C6.6 16.4 6 18.3 6 19.9c0 1.8 1.7 2.7 6 2.7s6-.9 6-2.7c0-1.6-.6-3.5-1.5-5.2.7-.7 1.2-1.7 1.2-2.8 0-1.8-1.1-3.1-2.5-3.7.2-.7.4-1.6.4-2.6 0-2.4-1.5-4.2-3.6-4.2Zm-1.45 4.3c.55 0 1 .65 1 1.4s-.45 1.4-1 1.4-1-.65-1-1.4.45-1.4 1-1.4Zm2.9 0c.55 0 1 .65 1 1.4s-.45 1.4-1 1.4-1-.65-1-1.4.45-1.4 1-1.4ZM9.4 20.4c0-.55 1.15-1 2.6-1s2.6.45 2.6 1c0 .55-1.15 1-2.6 1s-2.6-.45-2.6-1Z"
+      fill="#1A1A1A"
+      d="M12 1.8c-2 0-3.5 1.8-3.5 4.2 0 1 .2 1.9.4 2.6-1.4.6-2.5 1.9-2.5 3.6 0 1.1.5 2.1 1.2 2.8C6.7 16.6 6 18.4 6 20c0 1.8 1.6 2.7 6 2.7s6-.9 6-2.7c0-1.6-.7-3.4-1.6-4.9.7-.7 1.1-1.7 1.1-2.8 0-1.7-1.1-3-2.5-3.6.2-.7.4-1.6.4-2.6 0-2.4-1.5-4.2-3.5-4.2Z"
     />
-    {/* Iconic orange beak */}
-    <path fill="#F4A732" d="M10.55 9.4h2.9L12 11.25z" />
+    {/* white belly */}
+    <ellipse cx="12" cy="17" rx="3.2" ry="4" fill="#FFFFFF" />
+    {/* white eye patches */}
+    <ellipse cx="10.5" cy="6.8" rx="1.1" ry="1.5" fill="#FFFFFF" />
+    <ellipse cx="13.5" cy="6.8" rx="1.1" ry="1.5" fill="#FFFFFF" />
+    {/* pupils */}
+    <circle cx="10.7" cy="7.1" r="0.5" fill="#1A1A1A" />
+    <circle cx="13.3" cy="7.1" r="0.5" fill="#1A1A1A" />
+    {/* orange beak */}
+    <path fill="#F4A732" d="M10.5 8.8h3L12 10.6Z" />
+    {/* orange feet */}
+    <ellipse cx="9.5" cy="22" rx="1.4" ry="0.6" fill="#F4A732" />
+    <ellipse cx="14.5" cy="22" rx="1.4" ry="0.6" fill="#F4A732" />
   </svg>
 );
 
