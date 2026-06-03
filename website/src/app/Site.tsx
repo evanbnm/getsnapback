@@ -38,8 +38,8 @@ function Nav() {
       <div className="wrap nav-inner">
         <a className="brand" href="#top">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.png" alt="Snapback" />
-          <span>Snapback</span>
+          <img src="/icon.png" alt="GetSnapBack" />
+          <span>GetSnapBack</span>
         </a>
         <div className="nav-right">
           <a className="nav-link" href="#how">
@@ -50,7 +50,7 @@ function Nav() {
           </a>
           <a
             className="pill"
-            href="https://github.com/evanbnm/snapback"
+            href="https://github.com/evanbnm/getsnapback"
           >
             Github
           </a>
@@ -278,26 +278,26 @@ function Footer({ version }: { version: string }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.png" alt="" />
             <div>
-              <div className="t">Snapback</div>
+              <div className="t">GetSnapBack</div>
               <div className="s">{version} {t("foot.tagline")}</div>
             </div>
           </div>
           <div className="foot-links">
             <a
               className="link"
-              href="https://github.com/evanbnm/snapback"
+              href="https://github.com/evanbnm/getsnapback"
             >
               {t("foot.source")}
             </a>
             <a
               className="link"
-              href="https://github.com/evanbnm/snapback/issues"
+              href="https://github.com/evanbnm/getsnapback/issues"
             >
               {t("foot.bug")}
             </a>
             <a
               className="link"
-              href="https://github.com/evanbnm/snapback/releases"
+              href="https://github.com/evanbnm/getsnapback/releases"
             >
               {t("foot.changelog")}
             </a>

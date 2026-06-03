@@ -1,4 +1,4 @@
-# Snapback
+# GetSnapBack
 
 Application de bureau qui redonne à vos souvenirs Snapchat **leur vraie date**
 avant de les importer dans Photos (Apple) ou Google Photos.
@@ -54,12 +54,12 @@ payant, donc votre système affiche un avertissement au premier lancement.
 C'est normal et sans danger ; voici comment l'ouvrir :
 
 - **macOS** : sur les versions récentes (Sonoma, Sequoia…) macOS affiche
-  « Snapback est endommagé » et empêche l'ouverture. Pour débloquer :
+  « GetSnapBack est endommagé » et empêche l'ouverture. Pour débloquer :
   1. Glissez l'app du DMG dans **Applications**.
   2. Ouvrez **Terminal** (Spotlight → « Terminal »).
   3. Copiez-collez cette commande puis appuyez sur **Entrée** :
      ```
-     xattr -cr "/Applications/Snapback.app"
+     xattr -cr "/Applications/GetSnapBack.app"
      ```
   4. Lancez l'app normalement (double-clic sur l'icône).
 
@@ -80,7 +80,7 @@ simple double-clic sur son icône.
 1. Exportez vos souvenirs depuis Snapchat :
    **Snapchat → Paramètres → Mes données**, en activant **Exporter mes
    souvenirs** et **Exporter les fichiers JSON**, puis téléchargez tous les ZIP.
-2. Ouvrez Snapback et **déposez** votre ZIP (ou le dossier décompressé).
+2. Ouvrez GetSnapBack et **déposez** votre ZIP (ou le dossier décompressé).
 3. Choisissez les options (incrustation des overlays photo / vidéo).
 4. Lancez le traitement et patientez (l'incrustation vidéo peut être longue).
 5. Récupérez le dossier de sortie et **importez-le dans Photos / Google Photos**.

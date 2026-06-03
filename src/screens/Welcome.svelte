@@ -81,7 +81,7 @@
           {$t('local_badge')}
         </span>
       </div>
-      <h1 style="margin-bottom:5px">Snapback</h1>
+      <h1 style="margin-bottom:5px">GetSnapBack</h1>
       <p class="muted">{$t('app_subtitle')}</p>
     </div>
 

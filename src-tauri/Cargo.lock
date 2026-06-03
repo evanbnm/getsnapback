@@ -1415,6 +1415,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "getsnapback"
+version = "0.2.0"
+dependencies = [
+ "chrono",
+ "env_logger",
+ "hex",
+ "image",
+ "log",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-shell",
+ "tempfile",
+ "thiserror 1.0.69",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
 name = "gif"
 version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3755,29 +3778,6 @@ name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
-
-[[package]]
-name = "snapback"
-version = "0.2.0"
-dependencies = [
- "chrono",
- "env_logger",
- "hex",
- "image",
- "log",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-shell",
- "tempfile",
- "thiserror 1.0.69",
- "walkdir",
- "zip",
-]
 
 [[package]]
 name = "socket2"

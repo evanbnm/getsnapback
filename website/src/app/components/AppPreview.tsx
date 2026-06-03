@@ -41,7 +41,7 @@ export default function AppPreview() {
             <i style={{ background: "#FEBC2E" }} />
             <i style={{ background: "#28C840" }} />
           </div>
-          <div className="title-c">Snapback</div>
+          <div className="title-c">GetSnapBack</div>
           <div />
         </div>
         <div className="win-body">

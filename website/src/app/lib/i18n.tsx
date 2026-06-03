@@ -70,7 +70,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     "support.eyebrow": "support",
     "support.title": "Did this save your memories?",
     "support.body":
-      "Snapback is free and stays free. If it helped, a small tip keeps it caffeinated.",
+      "GetSnapBack is free and stays free. If it helped, a small tip keeps it caffeinated.",
     "support.cta": "Buy me a coffee",
     "support.note": "Hosted by Buy Me a Coffee. One time, no account needed.",
     "foot.tagline": "· MIT licence · made for the memories",
@@ -150,7 +150,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     "support.eyebrow": "soutien",
     "support.title": "Cette app vous a aidé ?",
     "support.body":
-      "Snapback est gratuit et le restera. Si elle vous a aidé, un café m'aide à continuer.",
+      "GetSnapBack est gratuit et le restera. Si elle vous a aidé, un café m'aide à continuer.",
     "support.cta": "M'offrir un café",
     "support.note": "Hébergé par Buy Me a Coffee. Don ponctuel, sans compte.",
     "foot.tagline": "· licence MIT · fait pour les souvenirs",

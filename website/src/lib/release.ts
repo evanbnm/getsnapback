@@ -1,6 +1,6 @@
 import type { ReleaseAssets } from "@/app/components/DownloadButtons";
 
-const REPO = "evanbnm/snapback";
+const REPO = "evanbnm/getsnapback";
 const FALLBACK_URL = `https://github.com/${REPO}/releases/latest`;
 // Used only when the GitHub API call fails (e.g. private repo, rate-limit).
 // Once the repo is public this value is overridden by the live tag.

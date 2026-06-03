@@ -71,7 +71,7 @@ export default function DownloadButtons({
         <span>·</span>
         <a
           className="link"
-          href="https://github.com/evanbnm/snapback/releases"
+          href="https://github.com/evanbnm/getsnapback/releases"
         >
           {t("dl.all")}
         </a>
