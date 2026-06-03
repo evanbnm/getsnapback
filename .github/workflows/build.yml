@@ -18,10 +18,7 @@ jobs:
           - platform: macos-latest      # Apple Silicon
             args: "--target aarch64-apple-darwin"
             target: aarch64-apple-darwin
-          - platform: macos-13          # Intel
-            args: "--target x86_64-apple-darwin"
-            target: x86_64-apple-darwin
-          - platform: windows-latest
+- platform: windows-latest
             args: ""
             target: x86_64-pc-windows-msvc
           - platform: ubuntu-22.04
@@ -64,25 +61,7 @@ jobs:
 
       # macOS ARM: binary already committed — nothing to do.
       # macOS Intel: PAR-pack exiftool on the macos-13 runner.
-      - name: Build standalone exiftool (macOS Intel)
-        if: matrix.target == 'x86_64-apple-darwin'
-        run: |
-          brew install exiftool
-          # --local-lib forces cpanm to install into ~/perl5 (avoids path issues on CI).
-          curl -fsSL https://cpanmin.us | perl - --local-lib=~/perl5 App::cpanminus 2>&1
-          ~/perl5/bin/cpanm --notest PAR::Packer 2>&1
-          EXIFTOOL_LIB="$(brew --prefix exiftool)/libexec/lib/perl5"
-          EXIFTOOL_BIN="$(brew --prefix exiftool)/libexec/bin/exiftool"
-          perl \
-            -I ~/perl5/lib/perl5 \
-            -I ~/perl5/lib/perl5/$(perl -MConfig -e 'print $Config{archname}') \
-            ~/perl5/bin/pp \
-            -I "$EXIFTOOL_LIB" \
-            -o src-tauri/binaries/exiftool-x86_64-apple-darwin \
-            "$EXIFTOOL_BIN"
-          chmod +x src-tauri/binaries/exiftool-x86_64-apple-darwin
-
-      # Windows: discover current version from exiftool.org and download directly.
+# Windows: discover current version from exiftool.org and download directly.
       - name: Install exiftool (Windows)
         if: matrix.platform == 'windows-latest'
         shell: pwsh
