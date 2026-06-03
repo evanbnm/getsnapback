@@ -98,7 +98,7 @@
 
     <!-- Phase label + counter -->
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-      <span style="font-weight:700;font-size:14px">{phaseLabel || '…'}</span>
+      <span style="font-weight:700;font-size:14px">{phaseLabel ? $t(phaseLabel) : '…'}</span>
       <span class="muted" style="font-size:12px">
         {$t('phase_label')} {phase || '…'} / {PHASE_COUNT}
       </span>

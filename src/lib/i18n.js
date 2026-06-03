@@ -42,6 +42,13 @@ const translations = {
     warning_one: 'warning',
     warning_many: 'warnings',
 
+    // phase labels (sent as keys from the Rust processor)
+    phase_dating: 'Dating files',
+    phase_overlay_photo: 'Compositing photo overlays',
+    phase_overlay_video: 'Compositing video overlays',
+    phase_dedup_content: 'Removing duplicate files',
+    phase_dedup_uuid: 'Removing Snapchat duplicates',
+
     // summary
     done_title: 'All done!',
     done_sub_one: 'memory ready to import',
@@ -96,6 +103,13 @@ const translations = {
     fatal_error: 'Erreur fatale',
     warning_one: 'avertissement',
     warning_many: 'avertissements',
+
+    // phase labels
+    phase_dating: 'Datation des fichiers',
+    phase_overlay_photo: 'Incrustation des overlays photo',
+    phase_overlay_video: 'Incrustation des overlays vidéo',
+    phase_dedup_content: 'Suppression des doublons',
+    phase_dedup_uuid: 'Suppression des doublons Snapchat',
 
     done_title: 'Traitement terminé !',
     done_sub_one: 'souvenir prêt à importer',

@@ -114,7 +114,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
     // ── Phase 1 — Non-overlay mains: copy + date ──────────────────────────────
     on_progress(ProgressEvent {
         phase: 1,
-        phase_label: "Datation des fichiers".to_string(),
+        phase_label: "phase_dating".to_string(),
         processed: 0,
         total: total_mains,
         current_file: None,
@@ -129,7 +129,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         let fname = file_name(&snap.path);
         on_progress(ProgressEvent {
             phase: 1,
-            phase_label: "Datation des fichiers".to_string(),
+            phase_label: "phase_dating".to_string(),
             processed: i as u64,
             total: total_mains,
             current_file: Some(fname.clone()),
@@ -163,7 +163,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
 
     on_progress(ProgressEvent {
         phase: 2,
-        phase_label: "Incrustation overlays (photos)".to_string(),
+        phase_label: "phase_overlay_photo".to_string(),
         processed: 0,
         total: photo_pairs.len() as u64,
         current_file: None,
@@ -173,7 +173,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         let fname = file_name(&main.path);
         on_progress(ProgressEvent {
             phase: 2,
-            phase_label: "Incrustation overlays (photos)".to_string(),
+            phase_label: "phase_overlay_photo".to_string(),
             processed: i as u64,
             total: photo_pairs.len() as u64,
             current_file: Some(fname.clone()),
@@ -215,7 +215,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
 
     on_progress(ProgressEvent {
         phase: 3,
-        phase_label: "Incrustation overlays (vidéos)".to_string(),
+        phase_label: "phase_overlay_video".to_string(),
         processed: 0,
         total: video_pairs.len() as u64,
         current_file: None,
@@ -225,7 +225,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         let fname = file_name(&main.path);
         on_progress(ProgressEvent {
             phase: 3,
-            phase_label: "Incrustation overlays (vidéos)".to_string(),
+            phase_label: "phase_overlay_video".to_string(),
             processed: i as u64,
             total: video_pairs.len() as u64,
             current_file: Some(fname.clone()),
@@ -265,7 +265,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
     // ── Phase 3 — Dedup content ───────────────────────────────────────────────
     on_progress(ProgressEvent {
         phase: 4,
-        phase_label: "Dédoublonnage (contenu identique)".to_string(),
+        phase_label: "phase_dedup_content".to_string(),
         processed: 0,
         total: 0,
         current_file: None,
@@ -291,7 +291,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
     // ── Phase 4 — Dedup UUID ──────────────────────────────────────────────────
     on_progress(ProgressEvent {
         phase: 5,
-        phase_label: "Dédoublonnage (même identifiant Snapchat)".to_string(),
+        phase_label: "phase_dedup_uuid".to_string(),
         processed: 0,
         total: 0,
         current_file: None,

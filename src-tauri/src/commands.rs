@@ -84,6 +84,12 @@ fn resolve_sidecars(app: &AppHandle, need_ffmpeg: bool) -> Result<SidecarPaths, 
         dirs.push(res);
     }
 
+    // 3. Common package-manager install locations (Homebrew on macOS, not in
+    //    the GUI app PATH).
+    for extra in &["/opt/homebrew/bin", "/usr/local/bin"] {
+        dirs.push(std::path::PathBuf::from(extra));
+    }
+
     let find_in_dirs = |name: &str| -> Option<PathBuf> {
         for dir in &dirs {
             if let Some(p) = find_binary(dir, name, &triple) {

@@ -8,3 +8,6 @@ src-tauri/gen/
 
 # macOS
 .DS_Store
+
+# ffmpeg sidecar — too large for git; downloaded by CI and copied locally
+src-tauri/binaries/ffmpeg-*
