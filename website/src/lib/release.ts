@@ -23,7 +23,10 @@ export async function getReleaseAssets(): Promise<ReleaseAssets> {
       `https://api.github.com/repos/${REPO}/releases/latest`,
       {
         headers: { Accept: "application/vnd.github+json" },
-        next: { revalidate: 3600 },
+        // 60s ISR window. Combined with /api/revalidate (triggered by the
+        // GitHub release webhook) the site catches up instantly on publish
+        // and at worst within a minute when the webhook is missing.
+        next: { revalidate: 60 },
       }
     );
     if (!res.ok) throw new Error(`GH api ${res.status}`);
