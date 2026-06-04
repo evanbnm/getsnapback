@@ -7,14 +7,16 @@ import DownloadButtons, {
 import MemoriesCollage from "./components/MemoriesCollage";
 import {
   ArrowDownIcon,
+  ArrowIcon,
   BrushIcon,
   CalendarIcon,
   CoffeeIcon,
   LockIcon,
 } from "./components/Icons";
+import { LangProvider, LangToggle, useT } from "./lib/i18n";
 
 const BMC_URL = "https://www.buymeacoffee.com/evanbnm";
-import { LangProvider, LangToggle, useT } from "./lib/i18n";
+const SNAP_EXPORT_URL = "https://accounts.snapchat.com/v2/download-my-data";
 
 export default function Site({ assets }: { assets: ReleaseAssets }) {
   return (
@@ -23,6 +25,7 @@ export default function Site({ assets }: { assets: ReleaseAssets }) {
       <Hero assets={assets} />
       <AppShowcase />
       <WhatItDoes />
+      <HowToExport />
       <DownloadCTA assets={assets} />
       <Support />
       <Footer />
@@ -143,6 +146,53 @@ function WhatItDoes() {
               <p>{body}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HowToExport() {
+  const { t } = useT();
+  const steps = [
+    t("export.s1"),
+    t("export.s2"),
+    t("export.s3"),
+    t("export.s4"),
+    t("export.s5"),
+    t("export.s6"),
+  ];
+  return (
+    <section className="section section-pad" id="export">
+      <div className="wrap">
+        <div className="card export-card">
+          <span className="eyebrow dark">{t("export.eyebrow")}</span>
+          <h2 className="h2" style={{ marginTop: 14 }}>
+            {t("export.title")}
+          </h2>
+          <p className="export-body">{t("export.body")}</p>
+
+          <a
+            className="btn btn-primary export-cta"
+            href={SNAP_EXPORT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t("export.cta")} <ArrowIcon />
+          </a>
+
+          <div className="export-procedure">
+            <span className="eyebrow">{t("export.procedure")}</span>
+            <ol className="export-steps">
+              {steps.map((step, i) => (
+                <li key={i}>
+                  <span className="export-step-n">{i + 1}</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="export-note">{t("export.note")}</p>
+          </div>
         </div>
       </div>
     </section>

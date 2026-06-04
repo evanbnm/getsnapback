@@ -40,6 +40,20 @@ const DICT: Record<Lang, Record<string, string>> = {
     "what.f3.t": "Stays local",
     "what.f3.b":
       "No upload. No account. No telemetry. Reads your folder, writes a clean one next to it, done.",
+    "export.eyebrow": "first step",
+    "export.title": "Get your export from Snapchat",
+    "export.body":
+      "GetSnapBack needs the zip Snapchat sends you by email. Requesting it takes a minute.",
+    "export.cta": "Open the Snapchat export page",
+    "export.procedure": "step by step",
+    "export.s1": "Open the Snapchat export page (button above)",
+    "export.s2": "Sign in to your Snapchat account",
+    "export.s3": "Tick « Export my memories »",
+    "export.s4": "Click « Next »",
+    "export.s5": "Choose « Since the beginning »",
+    "export.s6": "Click « Submit »",
+    "export.note":
+      "Snapchat then emails you a download link. It usually arrives within an hour, sometimes up to 24h.",
     "cta.t1": "Free.",
     "cta.t2": "Every platform.",
     "cta.sub": "Apple silicon, Windows 10/11, Linux AppImage.",
@@ -106,6 +120,20 @@ const DICT: Record<Lang, Record<string, string>> = {
     "what.f3.t": "Reste en local",
     "what.f3.b":
       "Aucun envoi. Aucun compte. Aucune télémétrie. L'app lit votre dossier, en écrit un propre à côté, terminé.",
+    "export.eyebrow": "première étape",
+    "export.title": "Récupérez votre export Snapchat",
+    "export.body":
+      "GetSnapBack a besoin du ZIP que Snapchat vous envoie par email. La demande prend une minute.",
+    "export.cta": "Ouvrir la page d'export Snapchat",
+    "export.procedure": "marche à suivre",
+    "export.s1": "Ouvrir la page d'export Snapchat (bouton ci-dessus)",
+    "export.s2": "Se connecter à son compte Snapchat",
+    "export.s3": "Cocher « Exporter mes souvenirs »",
+    "export.s4": "Cliquer sur « Suivant »",
+    "export.s5": "Choisir « Depuis toujours »",
+    "export.s6": "Cliquer sur « Envoyer »",
+    "export.note":
+      "Snapchat envoie ensuite un lien de téléchargement par email. Il arrive généralement en moins d'une heure, parfois jusqu'à 24h.",
     "cta.t1": "Gratuit.",
     "cta.t2": "Toutes les plateformes.",
     "cta.sub": "Apple Silicon, Windows 10/11, Linux AppImage.",
