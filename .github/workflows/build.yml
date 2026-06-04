@@ -18,9 +18,10 @@ jobs:
           - platform: macos-latest      # Apple Silicon
             args: "--target aarch64-apple-darwin"
             target: aarch64-apple-darwin
-          - platform: macos-13          # Intel runner (last x86_64 runner image)
-            args: "--target x86_64-apple-darwin"
-            target: x86_64-apple-darwin
+          # Intel Mac removed: GitHub's macos-13 runner queue is unreliable
+          # (3 h+ waits) and the audience is marginal — Apple stopped Intel in
+          # 2023. Apple Silicon users have native arm64; rare Intel users can
+          # build from source or use the previous v1.0.6 release.
           - platform: windows-latest
             args: ""
             target: x86_64-pc-windows-msvc
@@ -77,15 +78,6 @@ jobs:
           cp ffmpeg src-tauri/binaries/ffmpeg-aarch64-apple-darwin
           file src-tauri/binaries/ffmpeg-aarch64-apple-darwin
 
-      - name: Bundle ffmpeg (macOS Intel)
-        if: matrix.target == 'x86_64-apple-darwin'
-        run: |
-          curl -fsSL https://www.osxexperts.net/ffmpeg71intel.zip -o ffmpeg.zip
-          unzip -o ffmpeg.zip
-          chmod +x ffmpeg
-          cp ffmpeg src-tauri/binaries/ffmpeg-x86_64-apple-darwin
-          file src-tauri/binaries/ffmpeg-x86_64-apple-darwin
-
       - name: Bundle ffmpeg (Windows)
         if: matrix.platform == 'windows-latest'
         shell: pwsh
@@ -136,10 +128,9 @@ jobs:
 
             ### macOS
             - **Mac Apple Silicon** (M1/M2/M3/M4) → `GetSnapBack_*_aarch64.dmg`
-            - **Mac Intel** → `GetSnapBack_*_x64.dmg`
 
-            > Pour savoir lequel choisir : menu Pomme → À propos de ce Mac. Si la
-            > ligne « Puce » mentionne Apple M*, prenez le fichier `aarch64`.
+            > Mac Intel : pas de build officiel. Compile depuis les sources, ou
+            > utilise une version antérieure à v1.1.0.
 
             ### Windows
             - `GetSnapBack_*_x64-setup.exe` (installeur) ou `GetSnapBack_*_x64_en-US.msi`
