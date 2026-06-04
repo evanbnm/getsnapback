@@ -53,7 +53,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     "export.s5": "Choose « Since the beginning »",
     "export.s6": "Click « Submit »",
     "export.note":
-      "Snapchat then emails you a download link. It usually arrives within an hour, sometimes up to 24h.",
+      "Snapchat then emails you a download link — usually within an hour, sometimes up to 24h. If your archive exceeds 2 GB, Snapchat splits it into several zips: unzip them all into the same folder before running GetSnapBack.",
     "cta.t1": "Free.",
     "cta.t2": "Every platform.",
     "cta.sub": "Apple silicon, Windows 10/11, Linux AppImage.",
@@ -133,7 +133,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     "export.s5": "Choisir « Depuis toujours »",
     "export.s6": "Cliquer sur « Envoyer »",
     "export.note":
-      "Snapchat envoie ensuite un lien de téléchargement par email. Il arrive généralement en moins d'une heure, parfois jusqu'à 24h.",
+      "Snapchat envoie ensuite un lien de téléchargement par email — généralement en moins d'une heure, parfois jusqu'à 24h. Si l'archive dépasse 2 Go, Snapchat la découpe en plusieurs ZIP : décompressez-les tous dans le même dossier avant de lancer GetSnapBack.",
     "cta.t1": "Gratuit.",
     "cta.t2": "Toutes les plateformes.",
     "cta.sub": "Apple Silicon, Windows 10/11, Linux AppImage.",
