@@ -15,7 +15,7 @@
   function toggleLang()     { $locale = $locale === 'en' ? 'fr' : 'en'; }
 </script>
 
-<!-- Language toggle — floats top-right above any card -->
+<!-- Language toggle: floats top-right above any card -->
 <div style="position:fixed;top:14px;right:16px;z-index:100">
   <button class="lang-btn" on:click={toggleLang}>
     {$locale === 'en' ? 'FR' : 'EN'}

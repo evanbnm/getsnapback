@@ -22,7 +22,7 @@
   let elapsedInterval = null;
   let unlisten  = null;
 
-  // ETA tracking — countdown model. We compute a target ETA only when an item
+  // ETA tracking: countdown model. We compute a target ETA only when an item
   // finishes (so the value updates on real signal), then tick it down smoothly
   // by elapsed wall-clock time between completions. avgMs uses a wide window
   // to avoid a single slow item swinging the displayed value.
@@ -49,7 +49,7 @@
 
       let completionEvent = false;
       if (p.phase !== prevPhase) {
-        // New phase — reset all ETA state
+        // New phase: reset all ETA state
         prevPhase = p.phase;
         prevProcessed = p.processed;
         lastItemTime = Date.now();
@@ -188,7 +188,7 @@
         text-overflow:ellipsis;
         white-space:nowrap;
         min-height:18px
-      ">{currentFile ?? '—'}</div>
+      ">{currentFile ?? '…'}</div>
     </div>
 
     <!-- Log -->

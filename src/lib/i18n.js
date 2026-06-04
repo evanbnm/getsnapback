@@ -5,7 +5,7 @@ export const locale = writable('en');
 const translations = {
   en: {
     // badge
-    local_badge: '100% local — no files sent online',
+    local_badge: '100% local, no files sent online',
     lang_other: 'FR',
 
     // welcome
@@ -62,7 +62,7 @@ const translations = {
     import_heading: 'How to import',
     import_s1: 'Open Photos → File → Import…',
     import_s2: 'Select the output folder shown above',
-    import_s3: 'Check the Years view — dates should be correct',
+    import_s3: 'Check the Years view, dates should be correct',
     import_s4: 'Google Photos: drag the folder to photos.google.com',
     errors_one: 'file skipped',
     errors_many: 'files skipped',
@@ -70,7 +70,7 @@ const translations = {
   },
 
   fr: {
-    local_badge: '100 % local — aucun fichier envoyé sur Internet',
+    local_badge: '100 % local, aucun fichier envoyé sur Internet',
     lang_other: 'EN',
 
     app_subtitle: "Redonne leur vraie date à vos souvenirs Snapchat avant l'import dans Photos ou Google Photos.",
