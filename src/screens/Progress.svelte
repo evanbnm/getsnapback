@@ -21,6 +21,7 @@
   let eta       = null;
   let elapsedInterval = null;
   let unlisten  = null;
+  let cancelling = false;
 
   // ETA tracking: countdown model. We compute a target ETA only when an item
   // finishes (so the value updates on real signal), then tick it down smoothly
@@ -85,12 +86,30 @@
       const result = await invoke('start_processing', { request: options });
       dispatch('done', result);
     } catch (err) {
-      logs = [...logs, { msg: `${$t('fatal_error')}: ${err}`, isError: true }];
-      scrollLog();
+      const msg = String(err);
+      // The Rust processor returns "Cancelled by user" when the cancel flag
+      // was flipped. Treat it as a quiet return to the welcome screen,
+      // not as an error.
+      if (/cancelled/i.test(msg)) {
+        dispatch('cancelled');
+      } else {
+        logs = [...logs, { msg: `${$t('fatal_error')}: ${err}`, isError: true }];
+        scrollLog();
+      }
     } finally {
       if (elapsedInterval) clearInterval(elapsedInterval);
     }
   });
+
+  async function cancelProcessing() {
+    if (cancelling) return;
+    cancelling = true;
+    try {
+      await invoke('cancel_processing');
+    } catch (err) {
+      console.error('cancel_processing failed:', err);
+    }
+  }
 
   onDestroy(() => {
     if (unlisten) unlisten();
@@ -192,7 +211,7 @@
     </div>
 
     <!-- Log -->
-    <div class="field">
+    <div class="field" style="margin-bottom:16px">
       <div class="label" style="margin-bottom:5px">
         {$t('log_label')}
         {#if errCount > 0}
@@ -211,6 +230,21 @@
         {/if}
       </div>
     </div>
+
+    <!-- Cancel: discreet, full-width outline. Disabled while the request is
+         in flight so we don't fire it twice. -->
+    <button
+      class="btn btn-outline"
+      style="width:100%;border-color:var(--warning);color:var(--warning)"
+      on:click={cancelProcessing}
+      disabled={cancelling}
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M8 8l8 8M16 8l-8 8"/>
+      </svg>
+      {cancelling ? $t('cancelling') : $t('btn_cancel')}
+    </button>
 
   </div>
 </div>

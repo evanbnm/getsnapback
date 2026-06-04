@@ -10,7 +10,8 @@
 
   const dispatch = createEventDispatcher();
 
-  let inputPath  = '';
+  /** @type {string[]} */
+  let inputPaths = [];
   let outputPath = '';
   let overlayPhotos = true;
   let overlayVideos = true;
@@ -23,8 +24,7 @@
         isDragOver = true;
       } else if (e.payload.type === 'drop') {
         isDragOver = false;
-        const paths = e.payload.paths;
-        if (paths?.length > 0) setInput(paths[0]);
+        if (e.payload.paths?.length) addInputs(e.payload.paths);
       } else {
         isDragOver = false;
       }
@@ -33,26 +33,45 @@
 
   onDestroy(() => { if (unlisten) unlisten(); });
 
-  function setInput(path) {
-    inputPath  = path;
-    outputPath = defaultOutputPath(path);
+  function addInputs(paths) {
+    const seen = new Set(inputPaths);
+    for (const p of paths) {
+      if (!seen.has(p)) {
+        seen.add(p);
+        inputPaths = [...inputPaths, p];
+      }
+    }
+    if (!outputPath && inputPaths.length > 0) {
+      outputPath = defaultOutputPath(inputPaths[0]);
+    }
   }
 
-  async function pickInput() {
+  function clearInputs() {
+    inputPaths = [];
+  }
+
+  function fileName(path) {
+    if (!path) return '';
+    const sep = path.includes('/') ? '/' : '\\';
+    const parts = path.split(sep).filter(Boolean);
+    return parts[parts.length - 1] || path;
+  }
+
+  async function pickZips() {
     const r = await openDialog({
-      multiple: false,
+      multiple: true,
       directory: false,
       filters: [
         { name: 'Snapchat export', extensions: ['zip'] },
         { name: 'All files', extensions: ['*'] },
       ],
     });
-    if (r) setInput(r);
+    if (r) addInputs(Array.isArray(r) ? r : [r]);
   }
 
-  async function pickInputFolder() {
-    const r = await openDialog({ multiple: false, directory: true });
-    if (r) setInput(r);
+  async function pickFolders() {
+    const r = await openDialog({ multiple: true, directory: true });
+    if (r) addInputs(Array.isArray(r) ? r : [r]);
   }
 
   async function pickOutput() {
@@ -62,7 +81,7 @@
 
   function start() {
     dispatch('start', {
-      input_path:     inputPath,
+      input_paths:    inputPaths,
       output_path:    outputPath,
       overlay_photos: overlayPhotos,
       overlay_videos: overlayVideos,
@@ -76,6 +95,8 @@
       console.error('Failed to open Snapchat export URL:', e);
     }
   }
+
+  $: hasInputs = inputPaths.length > 0;
 </script>
 
 <div class="screen">
@@ -117,10 +138,10 @@
     <div
       class="drop-zone"
       class:drag-over={isDragOver}
-      class:has-file={inputPath && !isDragOver}
-      on:click={pickInput}
+      class:has-file={hasInputs && !isDragOver}
+      on:click={hasInputs ? undefined : pickZips}
     >
-      {#if inputPath}
+      {#if hasInputs}
         <!-- Check circle -->
         <span class="drop-icon">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
@@ -129,18 +150,31 @@
             <path d="M15 24l7 7 11-11" stroke="#fff" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <div style="font-weight:700;font-size:14px">{$t('drop_selected_title')}</div>
-        <div class="file-name">{shortPath(inputPath)}</div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap">
-          <button class="btn btn-ghost" on:click|stopPropagation={pickInput}>
-            {$t('btn_change_zip')}
+        <div style="font-weight:700;font-size:14px">
+          {inputPaths.length === 1
+            ? $t('drop_selected_title')
+            : `${inputPaths.length} ${$t('drop_selected_many')}`}
+        </div>
+        <ul class="input-list">
+          {#each inputPaths.slice(0, 3) as p}
+            <li>{fileName(p)}</li>
+          {/each}
+          {#if inputPaths.length > 3}
+            <li class="muted">+ {inputPaths.length - 3} {$t('drop_selected_more')}</li>
+          {/if}
+        </ul>
+        <div style="display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+          <button class="btn btn-ghost" on:click|stopPropagation={pickZips}>
+            {$t('btn_add_zip')}
           </button>
-          <button class="btn btn-ghost" on:click|stopPropagation={pickInputFolder}>
-            {$t('btn_pick_folder')}
+          <button class="btn btn-ghost" on:click|stopPropagation={pickFolders}>
+            {$t('btn_add_folder')}
+          </button>
+          <button class="btn btn-ghost" on:click|stopPropagation={clearInputs} style="color:var(--warning)">
+            {$t('btn_clear')}
           </button>
         </div>
       {:else if isDragOver}
-        <!-- Open folder with drop arrow -->
         <span class="drop-icon">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
             <path d="M6 18a3 3 0 0 1 3-3h8l3.5 4H39a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V18z" fill="var(--primary)" opacity=".9"/>
@@ -151,7 +185,6 @@
         </span>
         <div style="font-weight:700;font-size:14px">{$t('drop_over_title')}</div>
       {:else}
-        <!-- Upload arrow -->
         <span class="drop-icon">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
             <rect x="2" y="2" width="44" height="44" rx="14" fill="var(--primary-10)"/>
@@ -163,10 +196,10 @@
         <div style="font-weight:700;font-size:14px">{$t('drop_idle_title')}</div>
         <p class="muted" style="margin-top:5px;font-size:12px">{$t('drop_idle_sub')}</p>
         <div style="display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap">
-          <button class="btn btn-outline" on:click|stopPropagation={pickInput}>
+          <button class="btn btn-outline" on:click|stopPropagation={pickZips}>
             {$t('btn_pick_zip')}
           </button>
-          <button class="btn btn-outline" on:click|stopPropagation={pickInputFolder}>
+          <button class="btn btn-outline" on:click|stopPropagation={pickFolders}>
             {$t('btn_pick_folder')}
           </button>
         </div>
@@ -220,7 +253,7 @@
     </div>
 
     <!-- Start -->
-    <button class="btn btn-primary" disabled={!inputPath || !outputPath} on:click={start}>
+    <button class="btn btn-primary" disabled={!hasInputs || !outputPath} on:click={start}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
         <polygon points="5 3 19 12 5 21 5 3"/>
       </svg>

@@ -31,6 +31,9 @@ pub enum ProcessorError {
 
     #[error("Input not found: {0}")]
     InputNotFound(PathBuf),
+
+    #[error("Cancelled by user")]
+    Cancelled,
 }
 
 impl ProcessorError {

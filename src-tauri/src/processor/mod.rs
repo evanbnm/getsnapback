@@ -8,6 +8,7 @@ pub mod sidecar;
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
@@ -21,8 +22,11 @@ pub type Result<T> = std::result::Result<T, ProcessorError>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessorOptions {
-    /// ZIP archive or folder containing the Snapchat export.
-    pub input_path: PathBuf,
+    /// One or more Snapchat export sources. Each entry is either a ZIP
+    /// archive or an unzipped folder. When the user has multiple zips
+    /// because Snapchat split their archive above 2 GB, all of them are
+    /// passed in together and merged for a single processing pass.
+    pub input_paths: Vec<PathBuf>,
     /// Destination folder for processed files.
     pub output_path: PathBuf,
     /// Composite photo overlays (always recommended).
@@ -70,28 +74,53 @@ pub type ProgressCallback = Arc<dyn Fn(ProgressEvent) + Send + Sync>;
 
 // ─── Entry point ─────────────────────────────────────────────────────────────
 
-/// Run the full processing pipeline.  Emits `ProgressEvent`s via `on_progress`.
-pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<ProcessorSummary> {
+/// Run the full processing pipeline. Emits `ProgressEvent`s via `on_progress`.
+/// `cancel` is checked at the start of every per-file loop iteration so the
+/// pipeline can abort cleanly when the user clicks the cancel button.
+pub fn run(
+    options: ProcessorOptions,
+    on_progress: ProgressCallback,
+    cancel: Arc<AtomicBool>,
+) -> Result<ProcessorSummary> {
     let sidecars = SidecarPaths {
         ffmpeg: options.ffmpeg_path.clone(),
     };
 
-    // ── Resolve input ─────────────────────────────────────────────────────────
-    let _temp_dir; // keeps temp dir alive for the whole run
+    if options.input_paths.is_empty() {
+        return Err(ProcessorError::InputNotFound(PathBuf::new()));
+    }
+
+    // ── Resolve inputs ───────────────────────────────────────────────────────
+    // Fast path: a single folder input is used directly with no copying.
+    // Otherwise (one or more zips, or multiple folders) everything is merged
+    // into a temp dir, with each source landing in its own subdir to dodge
+    // name collisions.
+    let _temp_dir;
     let working_dir: PathBuf;
 
-    if options.input_path.is_file() {
-        // Assume ZIP
-        let tmp = tempfile::tempdir()
-            .map_err(|e| ProcessorError::io(&options.input_path, e))?;
-        extract_zip(&options.input_path, tmp.path())?;
-        working_dir = tmp.path().to_path_buf();
-        _temp_dir = Some(tmp);
-    } else if options.input_path.is_dir() {
-        working_dir = options.input_path.clone();
+    if options.input_paths.len() == 1 && options.input_paths[0].is_dir() {
+        working_dir = options.input_paths[0].clone();
         _temp_dir = None;
     } else {
-        return Err(ProcessorError::InputNotFound(options.input_path.clone()));
+        let tmp = tempfile::tempdir()
+            .map_err(|e| ProcessorError::io(&options.input_paths[0], e))?;
+        for (i, p) in options.input_paths.iter().enumerate() {
+            if check_cancelled(&cancel) {
+                return Err(ProcessorError::Cancelled);
+            }
+            let subdir = tmp.path().join(format!("src_{i:02}"));
+            std::fs::create_dir_all(&subdir)
+                .map_err(|e| ProcessorError::io(&subdir, e))?;
+            if p.is_file() {
+                extract_zip(p, &subdir)?;
+            } else if p.is_dir() {
+                hardlink_dir_recursive(p, &subdir)?;
+            } else {
+                return Err(ProcessorError::InputNotFound(p.clone()));
+            }
+        }
+        working_dir = tmp.path().to_path_buf();
+        _temp_dir = Some(tmp);
     }
 
     // ── Output directory ──────────────────────────────────────────────────────
@@ -204,6 +233,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
     });
 
     for (i, snap) in standalone_mains.iter().enumerate() {
+        if check_cancelled(&cancel) { return Err(ProcessorError::Cancelled); }
         let fname = file_name(&snap.path);
         on_progress(ProgressEvent {
             phase: 1,
@@ -250,6 +280,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
     });
 
     for (i, (main, overlay)) in photo_pairs.iter().enumerate() {
+        if check_cancelled(&cancel) { return Err(ProcessorError::Cancelled); }
         let fname = file_name(&main.path);
         on_progress(ProgressEvent {
             phase: 2,
@@ -305,6 +336,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         });
 
         for (i, (main, overlay)) in video_pairs.iter().enumerate() {
+            if check_cancelled(&cancel) { return Err(ProcessorError::Cancelled); }
             let fname = file_name(&main.path);
             on_progress(ProgressEvent {
                 phase: phase_num,
@@ -452,6 +484,48 @@ fn apply_date(snap: &SnapFile, dst: &Path, sidecars: &SidecarPaths) -> Result<bo
 }
 
 // ─── ZIP extraction ───────────────────────────────────────────────────────────
+
+fn check_cancelled(cancel: &Arc<AtomicBool>) -> bool {
+    cancel.load(Ordering::SeqCst)
+}
+
+/// Mirror `src` into `dst` using hard links so the user's input files are
+/// not duplicated on disk. Falls back to a real copy if hard-linking fails
+/// (e.g. the temp dir is on a different filesystem). The processor only
+/// READS from the working dir and writes to `out_dir`, so sharing inodes
+/// with the source is safe.
+fn hardlink_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+    for entry in walkdir::WalkDir::new(src) {
+        let entry = entry.map_err(|e| {
+            ProcessorError::io(
+                src,
+                std::io::Error::new(std::io::ErrorKind::Other, e.to_string()),
+            )
+        })?;
+        let rel = entry
+            .path()
+            .strip_prefix(src)
+            .unwrap_or_else(|_| entry.path());
+        if rel.as_os_str().is_empty() {
+            continue;
+        }
+        let target = dst.join(rel);
+        if entry.file_type().is_dir() {
+            std::fs::create_dir_all(&target)
+                .map_err(|e| ProcessorError::io(&target, e))?;
+        } else if entry.file_type().is_file() {
+            if let Some(parent) = target.parent() {
+                std::fs::create_dir_all(parent)
+                    .map_err(|e| ProcessorError::io(parent, e))?;
+            }
+            if std::fs::hard_link(entry.path(), &target).is_err() {
+                std::fs::copy(entry.path(), &target)
+                    .map_err(|e| ProcessorError::io(&target, e))?;
+            }
+        }
+    }
+    Ok(())
+}
 
 fn extract_zip(zip_path: &Path, dest: &Path) -> Result<()> {
     let file = std::fs::File::open(zip_path)

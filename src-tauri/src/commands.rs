@@ -1,13 +1,23 @@
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use tauri::{AppHandle, Emitter, Manager};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::processor::{self, ProcessorOptions, ProcessorSummary, ProgressEvent};
 use crate::processor::sidecar::SidecarPaths;
 
+/// Shared between `start_processing` (which clones the Arc and hands it to
+/// the processor) and `cancel_processing` (which flips it to true).
+#[derive(Default)]
+pub struct AppState {
+    pub cancel_flag: Arc<AtomicBool>,
+}
+
 #[derive(Debug, serde::Deserialize)]
 pub struct StartRequest {
-    pub input_path: String,
+    /// One or more ZIP archives or unzipped folders to merge into a single
+    /// processing pass.
+    pub input_paths: Vec<String>,
     pub output_path: String,
     pub overlay_photos: bool,
     pub overlay_videos: bool,
@@ -30,32 +40,46 @@ pub fn open_folder(path: String) -> Result<(), String> {
         .map_err(|e| format!("impossible d'ouvrir le dossier : {e}"))
 }
 
-/// Start the processing pipeline.  Progress events are emitted as
-/// `"progress"` events on the app handle.
+/// Start the processing pipeline. Progress events are emitted as
+/// `"progress"` events on the app handle. The cancel flag stored in
+/// `AppState` is reset to `false` here and an `Arc` clone is handed to
+/// the processor so the user can flip it back to `true` later.
 #[tauri::command]
 pub async fn start_processing(
     app: AppHandle,
+    state: State<'_, AppState>,
     request: StartRequest,
 ) -> Result<ProcessorSummary, String> {
     let sidecars = resolve_sidecars(&app).map_err(|e| e.to_string())?;
 
     let options = ProcessorOptions {
-        input_path: PathBuf::from(&request.input_path),
+        input_paths: request.input_paths.iter().map(PathBuf::from).collect(),
         output_path: PathBuf::from(&request.output_path),
         overlay_photos: request.overlay_photos,
         overlay_videos: request.overlay_videos,
         ffmpeg_path: sidecars.ffmpeg.clone(),
     };
 
+    // Reset the cancel flag so a previous cancel doesn't bleed into this run.
+    state.cancel_flag.store(false, Ordering::SeqCst);
+    let cancel = state.cancel_flag.clone();
+
     let app_clone = app.clone();
     let on_progress: processor::ProgressCallback = Arc::new(move |event: ProgressEvent| {
         let _ = app_clone.emit("progress", &event);
     });
 
-    tauri::async_runtime::spawn_blocking(move || processor::run(options, on_progress))
+    tauri::async_runtime::spawn_blocking(move || processor::run(options, on_progress, cancel))
         .await
         .map_err(|e| format!("spawn error: {e}"))?
         .map_err(|e| e.to_string())
+}
+
+/// Set the shared cancel flag to true. The running processor picks it up
+/// on its next loop iteration and returns `ProcessorError::Cancelled`.
+#[tauri::command]
+pub fn cancel_processing(state: State<'_, AppState>) {
+    state.cancel_flag.store(true, Ordering::SeqCst);
 }
 
 /// Resolve sidecar binary paths.
