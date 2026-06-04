@@ -35,65 +35,226 @@
   }
 
   // ── Share card ──────────────────────────────────────────────────────────
-  // Draws a 1200×630 PNG to a Canvas, then saves it via the Tauri dialog
-  // + fs plugin. All synchronous canvas work, no extra deps.
+  // Vertical 1080×1920 ("story" format, Instagram/TikTok/Snapchat).
+  // Pure Canvas, no extra deps.
   function drawShareCard() {
+    const W = 1080;
+    const H = 1920;
     const canvas = document.createElement('canvas');
-    canvas.width = 1200;
-    canvas.height = 630;
+    canvas.width = W;
+    canvas.height = H;
     const ctx = canvas.getContext('2d');
 
-    // Background
-    ctx.fillStyle = '#FFEF5C';
-    ctx.fillRect(0, 0, 1200, 630);
+    const FONT =
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
+    const C = {
+      bg: '#FFEF5C',
+      ink: '#1A1A2E',
+      muted: '#7C7C9A',
+      teal: '#00C9B1',
+      tealDeep: '#00A896',
+      pink: '#FF6B9D',
+      surface: '#FFFDF5',
+      border: '#EDE9C5',
+    };
 
-    // Decorative teal blob
-    ctx.fillStyle = '#00C9B1';
-    ctx.globalAlpha = 0.12;
+    // 1. Background
+    ctx.fillStyle = C.bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. Decorative teal blob top-right
+    ctx.globalAlpha = 0.14;
+    ctx.fillStyle = C.teal;
     ctx.beginPath();
-    ctx.arc(1080, 70, 220, 0, Math.PI * 2);
+    ctx.arc(W + 60, 180, 420, 0, Math.PI * 2);
     ctx.fill();
-    // Decorative pink blob
-    ctx.fillStyle = '#FF6B9D';
-    ctx.globalAlpha = 0.13;
+    // 3. Decorative pink blob bottom-left
+    ctx.fillStyle = C.pink;
     ctx.beginPath();
-    ctx.arc(90, 590, 200, 0, Math.PI * 2);
+    ctx.arc(-60, H - 240, 360, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
 
-    const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif';
-
-    // Wordmark
-    ctx.fillStyle = '#1A1A2E';
-    ctx.font = `800 30px ${font}`;
+    // 4. Wordmark + pulsing dot accent (centered top)
+    ctx.fillStyle = C.teal;
+    ctx.beginPath();
+    ctx.arc(W / 2 - 200, 165, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = C.ink;
+    ctx.font = `800 44px ${FONT}`;
     ctx.textAlign = 'left';
-    ctx.fillText('GetSnapBack', 68, 80);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('GetSnapBack', W / 2 - 175, 165);
 
-    // Big number
-    const totalStr = total.toLocaleString($locale === 'fr' ? 'fr-FR' : 'en-US');
-    ctx.fillStyle = '#00C9B1';
-    ctx.font = `800 200px ${font}`;
-    ctx.fillText(totalStr, 60, 360);
+    // 5. Big number, auto-shrink to fit
+    const totalStr = total.toLocaleString(
+      $locale === 'fr' ? 'fr-FR' : 'en-US'
+    );
+    let numSize = 320;
+    ctx.font = `900 ${numSize}px ${FONT}`;
+    while (ctx.measureText(totalStr).width > W - 160 && numSize > 110) {
+      numSize -= 12;
+      ctx.font = `900 ${numSize}px ${FONT}`;
+    }
+    ctx.fillStyle = C.teal;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(totalStr, W / 2, 560);
 
-    // Caption
-    ctx.fillStyle = '#1A1A2E';
-    ctx.font = `700 46px ${font}`;
-    ctx.fillText($t('share_card_caption'), 64, 420);
+    // 6. Sparkle next to the number (decorative)
+    drawStar(ctx, W / 2 + 290, 380, 18, C.pink);
+    drawStar(ctx, W / 2 - 320, 340, 14, C.ink, 0.5);
+    drawStar(ctx, W / 2 + 250, 580, 11, C.teal, 0.6);
 
-    // Year range
+    // 7. Caption (two lines max). Auto-wrap on space.
+    ctx.fillStyle = C.ink;
+    ctx.font = `800 64px ${FONT}`;
+    ctx.textAlign = 'center';
+    drawWrapped(ctx, $t('share_card_caption'), W / 2, 700, W - 160, 76);
+
+    // 8. Year range pill
     if (yearRange) {
-      ctx.fillStyle = '#7C7C9A';
-      ctx.font = `600 34px ${font}`;
-      ctx.fillText(`${$t('share_card_range_prefix')} ${yearRange}`, 64, 478);
+      const txt = `${$t('share_card_range_prefix')} ${yearRange}`;
+      ctx.font = `700 32px ${FONT}`;
+      const tw = ctx.measureText(txt).width;
+      const pillW = tw + 56;
+      const pillH = 62;
+      const px = W / 2 - pillW / 2;
+      const py = 820;
+      ctx.fillStyle = C.ink;
+      roundRect(ctx, px, py, pillW, pillH, pillH / 2);
+      ctx.fill();
+      ctx.fillStyle = C.bg;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(txt, W / 2, py + pillH / 2 + 1);
     }
 
-    // URL bottom-right
-    ctx.fillStyle = '#1A1A2E';
-    ctx.font = `600 22px ${font}`;
-    ctx.textAlign = 'right';
-    ctx.fillText('getsnapback.vercel.app', 1140, 590);
+    // 9. Histogram (cream panel, gradient teal bars, year labels)
+    const years = summary?.years ?? [];
+    if (years.length > 0) {
+      drawHistogram(ctx, years, 80, 970, W - 160, 660, C, FONT);
+    }
+
+    // 10. URL bottom
+    ctx.fillStyle = C.ink;
+    ctx.font = `700 32px ${FONT}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText('getsnapback.vercel.app', W / 2, H - 80);
 
     return canvas;
+  }
+
+  function drawHistogram(ctx, years, x, y, w, h, C, FONT) {
+    // Panel
+    roundRect(ctx, x, y, w, h, 28);
+    ctx.fillStyle = C.surface;
+    ctx.fill();
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Geometry
+    const padX = 56;
+    const padTop = 56;
+    const padBot = 78; // room for year labels
+    const innerW = w - padX * 2;
+    const innerH = h - padTop - padBot;
+
+    const n = years.length;
+    const gap = Math.min(20, Math.max(6, innerW / (n * 6)));
+    const barW = (innerW - gap * (n - 1)) / n;
+    const maxCount = years.reduce(
+      (m, yr) => (yr.count > m ? yr.count : m),
+      1
+    );
+
+    // Bars
+    for (let i = 0; i < n; i++) {
+      const yr = years[i];
+      const ratio = yr.count / maxCount;
+      const barH = Math.max(14, ratio * innerH);
+      const bx = x + padX + i * (barW + gap);
+      const by = y + padTop + innerH - barH;
+
+      const grad = ctx.createLinearGradient(0, by, 0, by + barH);
+      grad.addColorStop(0, C.teal);
+      grad.addColorStop(1, C.tealDeep);
+      ctx.fillStyle = grad;
+      roundRect(ctx, bx, by, barW, barH, Math.min(10, barW / 3));
+      ctx.fill();
+    }
+
+    // Year labels (every bar if there's room; otherwise every other)
+    ctx.fillStyle = C.ink;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const labelFontSize = Math.max(18, Math.min(28, barW * 0.45));
+    ctx.font = `700 ${labelFontSize}px ${FONT}`;
+    const labelEvery = barW < 50 ? 2 : 1;
+    for (let i = 0; i < n; i++) {
+      if (i % labelEvery !== 0 && i !== n - 1) continue;
+      const yr = years[i];
+      const bx = x + padX + i * (barW + gap);
+      ctx.globalAlpha = 0.85;
+      ctx.fillText(String(yr.year), bx + barW / 2, y + h - padBot + 20);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawWrapped(ctx, text, cx, y, maxW, lineH) {
+    const words = text.split(' ');
+    const lines = [];
+    let line = '';
+    for (const w of words) {
+      const candidate = line ? `${line} ${w}` : w;
+      if (ctx.measureText(candidate).width > maxW && line) {
+        lines.push(line);
+        line = w;
+      } else {
+        line = candidate;
+      }
+    }
+    if (line) lines.push(line);
+    ctx.textBaseline = 'alphabetic';
+    for (let i = 0; i < lines.length; i++) {
+      ctx.fillText(lines[i], cx, y + i * lineH);
+    }
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    const rr = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + rr, y);
+    ctx.lineTo(x + w - rr, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+    ctx.lineTo(x + w, y + h - rr);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+    ctx.lineTo(x + rr, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+    ctx.lineTo(x, y + rr);
+    ctx.quadraticCurveTo(x, y, x + rr, y);
+    ctx.closePath();
+  }
+
+  function drawStar(ctx, cx, cy, r, color, alpha = 1) {
+    const spikes = 5;
+    const inner = r * 0.42;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    for (let i = 0; i < spikes * 2; i++) {
+      const ang = (Math.PI / spikes) * i - Math.PI / 2;
+      const rad = i % 2 === 0 ? r : inner;
+      const x = cx + Math.cos(ang) * rad;
+      const y = cy + Math.sin(ang) * rad;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 
   async function saveShareCard() {
