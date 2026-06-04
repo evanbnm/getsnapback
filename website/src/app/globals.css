@@ -652,6 +652,82 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
   .dot::after, .prog-fill, .f1, .f2, .f3 { animation: none !important; }
 }
 
+/* ─── Scroll reveal (IntersectionObserver-driven) ───────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity .7s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms),
+    transform .7s cubic-bezier(.22, 1, .36, 1) var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.in-view { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
+/* ─── Live demo section (video player in a window frame) ────────────────── */
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: center;
+}
+@media (min-width: 980px) {
+  .demo-grid { grid-template-columns: 0.85fr 1.15fr; gap: 56px; }
+}
+.demo-copy .h2 { line-height: 1.05; max-width: 16ch; }
+.demo-body {
+  color: var(--color-muted); font-size: 15px; font-weight: 500;
+  max-width: 40ch; margin-top: 14px;
+}
+.demo-window {
+  width: 100%;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  position: relative;
+}
+.demo-titlebar {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+  padding: 11px 14px;
+}
+.demo-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--color-bg);
+  aspect-ratio: 16 / 10;
+  object-fit: contain;
+}
+.demo-placeholder {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  background: var(--color-bg);
+  text-align: center;
+  padding: 32px;
+}
+.demo-placeholder .label {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--color-muted);
+}
+.demo-placeholder .hint {
+  font-family: var(--mono); font-size: 12px; color: var(--color-text);
+  margin-top: 8px; background: var(--color-surface);
+  padding: 4px 10px; border-radius: var(--radius-xs);
+  border: 1px solid var(--color-border);
+}
+
+@media (max-width: 768px) {
+  .demo-grid { gap: 28px; }
+  .demo-copy .h2 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
+}
+
 /* ============================================================
    Mobile / responsive
    ============================================================ */

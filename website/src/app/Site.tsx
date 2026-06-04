@@ -1,10 +1,12 @@
 "use client";
 
+import AppDemo from "./components/AppDemo";
 import AppPreview from "./components/AppPreview";
 import DownloadButtons, {
   type ReleaseAssets,
 } from "./components/DownloadButtons";
 import MemoriesCollage from "./components/MemoriesCollage";
+import Reveal from "./components/Reveal";
 import {
   ArrowDownIcon,
   ArrowIcon,
@@ -23,11 +25,24 @@ export default function Site({ assets }: { assets: ReleaseAssets }) {
     <LangProvider>
       <Nav />
       <Hero assets={assets} />
-      <AppShowcase />
-      <WhatItDoes />
-      <HowToExport />
-      <DownloadCTA assets={assets} />
-      <Support />
+      <Reveal>
+        <AppShowcase />
+      </Reveal>
+      <Reveal>
+        <WhatItDoes />
+      </Reveal>
+      <Reveal>
+        <HowToExport />
+      </Reveal>
+      <Reveal>
+        <AppDemo />
+      </Reveal>
+      <Reveal>
+        <DownloadCTA assets={assets} />
+      </Reveal>
+      <Reveal>
+        <Support />
+      </Reveal>
       <Footer />
     </LangProvider>
   );
