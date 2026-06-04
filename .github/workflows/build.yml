@@ -153,17 +153,16 @@ jobs:
 
             ### macOS
             L'app n'étant pas signée par un certificat Apple Developer ($99/an),
-            macOS affiche « est endommagé » au premier lancement.
+            macOS bloque le premier lancement.
 
             **Procédure (une seule fois) :**
             1. Ouvrez le DMG et glissez **GetSnapBack** dans **Applications**.
-            2. Ouvrez **Terminal** (Spotlight → « Terminal »).
-            3. Collez et exécutez :
-               ```
-               xattr -cr "/Applications/GetSnapBack.app"
-               ```
-            4. Lancez l'app normalement. Les ouvertures suivantes ne demandent
-               plus rien.
+            2. Lancez l'app une première fois (macOS affiche un avertissement,
+               c'est normal — fermez la fenêtre).
+            3. Ouvrez **Réglages Système → Confidentialité et sécurité**.
+            4. Tout en bas, à la ligne mentionnant GetSnapBack, cliquez
+               **Ouvrir quand même**, puis confirmez.
+            5. Les ouvertures suivantes se font normalement, sans rien demander.
 
             ### Windows
             Sur l'écran « Windows a protégé votre ordinateur » :
