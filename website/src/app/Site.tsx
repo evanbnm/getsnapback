@@ -246,7 +246,7 @@ function DownloadCTA({ assets }: { assets: ReleaseAssets }) {
                 <br />
                 <strong>{t("cta.note.mac.label")}</strong>
                 {t("cta.note.mac.pre")}
-                <code className="note-code">{t("cta.note.mac.code")}</code>
+                <em>{t("cta.note.mac.em")}</em>
                 {t("cta.note.mac.post")}
                 <br />
                 <strong>{t("cta.note.win.label")}</strong>
