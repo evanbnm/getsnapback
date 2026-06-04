@@ -157,26 +157,68 @@ function HowToExport() {
   return (
     <section className="section section-pad" id="export">
       <div className="wrap">
-        <div className="card export-card">
-          <span className="eyebrow dark">{t("export.eyebrow")}</span>
-          <h2 className="h2" style={{ marginTop: 14 }}>
-            {t("export.title")}
-          </h2>
-          <p className="export-body">{t("export.body")}</p>
-
-          <a
-            className="btn btn-primary export-cta"
-            href={SNAP_EXPORT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {t("export.cta")} <ArrowIcon />
-          </a>
-
-          <p className="export-note">{t("export.note")}</p>
+        <div className="export-layout">
+          <div className="export-copy">
+            <span className="eyebrow dark">{t("export.eyebrow")}</span>
+            <h2 className="h2" style={{ marginTop: 14 }}>
+              {t("export.title")}
+            </h2>
+            <p className="export-body">{t("export.body")}</p>
+            <a
+              className="btn btn-primary export-cta"
+              href={SNAP_EXPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("export.cta")} <ArrowIcon />
+            </a>
+            <p className="export-note">{t("export.note")}</p>
+          </div>
+          <ExportArt />
         </div>
       </div>
     </section>
+  );
+}
+
+function ExportArt() {
+  return (
+    <div className="export-art" aria-hidden>
+      <div className="art-card art-c1">
+        <div
+          className="art-photo"
+          style={{ background: "linear-gradient(135deg,#FF6B9D 0%,#FF8A3B 100%)" }}
+        />
+        <span className="art-cap">03·09·17</span>
+      </div>
+      <div className="art-card art-c2">
+        <div
+          className="art-photo"
+          style={{ background: "linear-gradient(135deg,#00C9B1 0%,#3BAFDA 100%)" }}
+        />
+        <span className="art-cap">15·07·18</span>
+      </div>
+      <div className="art-card art-c3">
+        <div
+          className="art-photo"
+          style={{ background: "linear-gradient(135deg,#A66BFF 0%,#FF6B9D 100%)" }}
+        />
+        <span className="art-cap">21·06·24</span>
+      </div>
+      <div className="art-zip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <path d="M13 9v2M13 13v2M13 17v2" />
+        </svg>
+        <span>snapchat_memories.zip</span>
+      </div>
+      <div className="art-arrow" aria-hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 5v14" />
+          <path d="M6 13l6 6 6-6" />
+        </svg>
+      </div>
+    </div>
   );
 }
 

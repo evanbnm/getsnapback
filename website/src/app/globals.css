@@ -425,24 +425,100 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
   margin-top: 12px; font-weight: 500;
 }
 
-/* How to export from Snapchat */
-.export-card { padding: 44px 44px 40px; }
-.export-card .h2 { line-height: 1.06; max-width: 18ch; }
+/* How to export from Snapchat — lives directly on the yellow page bg,
+   no white card, with a two-column layout (copy + animated illustration). */
+.export-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: center;
+}
+@media (min-width: 880px) {
+  .export-layout { grid-template-columns: 1.05fr 1fr; gap: 56px; }
+}
+.export-copy .h2 { line-height: 1.05; max-width: 18ch; }
 .export-body {
   color: var(--color-muted); font-size: 15px; font-weight: 500;
-  max-width: 52ch; margin-top: 14px;
+  max-width: 50ch; margin-top: 14px;
 }
-.export-cta {
-  margin-top: 22px;
-}
+.export-cta { margin-top: 22px; }
 .export-note {
-  font-size: 12px;
-  color: var(--color-muted);
-  font-weight: 500;
-  line-height: 1.6;
-  max-width: 52ch;
-  margin-top: 18px;
+  font-size: 12px; color: var(--color-muted); font-weight: 500;
+  line-height: 1.6; max-width: 50ch; margin-top: 18px;
 }
+
+/* Animated illustration: three little polaroids floating, a flow arrow,
+   and a ZIP label at the bottom — reads as "your memories get packaged". */
+.export-art {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  height: 290px;
+  margin: 0 auto;
+}
+.art-card {
+  position: absolute;
+  width: 96px; height: 118px;
+  background: #fff;
+  border: 2.5px solid var(--color-text);
+  border-radius: 16px;
+  padding: 7px 7px 0;
+  box-shadow: 0 6px 0 rgba(0,0,0,.08);
+}
+.art-photo {
+  width: 100%;
+  height: 80px;
+  border-radius: 9px;
+}
+.art-cap {
+  display: block;
+  text-align: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 6px 2px 0;
+  font-family: var(--mono);
+  color: var(--color-text);
+  letter-spacing: 0.3px;
+}
+.art-c1 { left: 0;   top: 26px; transform: rotate(-9deg); animation: artFloat 5.5s ease-in-out infinite; }
+.art-c2 { left: 130px; top: 4px; transform: rotate(3deg); animation: artFloat 5s ease-in-out .4s infinite; z-index: 2; }
+.art-c3 { right: 0;  top: 26px; transform: rotate(9deg); animation: artFloat 6s ease-in-out .8s infinite; }
+@keyframes artFloat {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -8px; }
+}
+.art-arrow {
+  position: absolute;
+  left: 50%;
+  top: 150px;
+  color: var(--color-text);
+  animation: arrowFlow 2s ease-in-out infinite;
+}
+@keyframes arrowFlow {
+  0%   { transform: translate(-50%, -4px); opacity: .25; }
+  50%  { transform: translate(-50%, 5px);  opacity: .85; }
+  100% { transform: translate(-50%, -4px); opacity: .25; }
+}
+.art-zip {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 6px 0 rgba(0,0,0,.18);
+  white-space: nowrap;
+}
+.art-zip svg { color: var(--color-bg); }
 
 /* Footer */
 .footer { padding: 34px 0 48px; }
@@ -644,10 +720,19 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
     padding: 1px 5px;
   }
 
-  /* export card mirrors the CTA card sizing */
-  .export-card { padding: 32px 22px; }
-  .export-card .h2 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
+  /* export section — copy + smaller floating art */
+  .export-copy .h2 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
   .export-body { font-size: 14px; }
+  .export-layout { gap: 28px; }
+  .export-art { height: 250px; max-width: 320px; }
+  .art-card { width: 84px; height: 104px; padding: 6px 6px 0; border-radius: 14px; }
+  .art-photo { height: 68px; }
+  .art-cap { font-size: 9px; padding: 5px 2px 0; }
+  .art-c1 { top: 22px; }
+  .art-c2 { left: 116px; top: 4px; }
+  .art-c3 { top: 22px; }
+  .art-arrow { top: 128px; }
+  .art-zip { padding: 9px 14px; font-size: 11.5px; }
 
   /* support card mirrors CTA card sizing */
   .support-card { padding: 32px 22px; }
@@ -700,5 +785,4 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
   /* let the CTA + support cards reach the screen edges */
   .cta-card { padding: 28px 18px; }
   .support-card { padding: 28px 18px; }
-  .export-card { padding: 28px 18px; }
 }
