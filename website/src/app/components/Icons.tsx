@@ -88,7 +88,7 @@ export const LinuxIcon = () => (
   // Raster Tux supplied by the user at /linux.png (512×512 with alpha).
   // Rendered at 20px so the penguin reads clearly inside the buttons.
   // eslint-disable-next-line @next/next/no-img-element
-  <img src="/linux.png" alt="" width={20} height={20} style={{ display: "block" }} />
+  <img src="/linux.png" alt="" width={26} height={26} style={{ display: "block" }} />
 );
 
 /* ---- Doodles (used by MemoriesCollage) ---- */
