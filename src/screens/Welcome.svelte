@@ -13,7 +13,7 @@
   let inputPath  = '';
   let outputPath = '';
   let overlayPhotos = true;
-  let overlayVideos = false;
+  let overlayVideos = true;
   let isDragOver = false;
   let unlisten   = null;
 
