@@ -142,4 +142,4 @@ Les artefacts sont générés dans `src-tauri/target/release/bundle/`.
 
 ## Licence
 
-À définir.
+MIT. Voir le fichier [LICENSE](./LICENSE).

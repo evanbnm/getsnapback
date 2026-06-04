@@ -33,7 +33,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/exiftool", "binaries/ffmpeg"]
+    "externalBin": ["binaries/exiftool", "binaries/ffmpeg"],
+    "macOS": {
+      "signingIdentity": "-"
+    }
   },
   "plugins": {
     "shell": {
