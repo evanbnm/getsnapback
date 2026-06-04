@@ -84,31 +84,11 @@ export const CoffeeIcon = (p: P) => (
   </svg>
 );
 
-export const LinuxIcon = (p: P) => (
-  // Tux drawn from scratch — rounder body, large white belly, close-set
-  // eye patches, small triangular beak, two white feet at the base.
-  // Explicit fills so the penguin keeps his canonical look on every
-  // button background.
-  <svg width="20" height="20" viewBox="0 0 24 24" {...p}>
-    {/* black body silhouette */}
-    <path
-      fill="#0E0E0E"
-      d="M12 1.6c-2.3 0-3.9 1.9-3.9 4.6 0 1 .2 1.9.4 2.6-1.7.9-3 3.1-3 5.9 0 2.6 1.1 4.5 2.4 5.6-1.2.3-1.9 1-1.9 1.8 0 .8.5 1.3 1.5 1.3.5 0 1.2-.1 1.8-.3 0 0 .8-.5 1.4-.6h4.6c.6.1 1.4.6 1.4.6.6.2 1.3.3 1.8.3 1 0 1.5-.5 1.5-1.3 0-.8-.7-1.5-1.9-1.8 1.3-1.1 2.4-3 2.4-5.6 0-2.8-1.3-5-3-5.9.2-.7.4-1.6.4-2.6C15.9 3.5 14.3 1.6 12 1.6Z"
-    />
-    {/* white belly */}
-    <ellipse cx="12" cy="14.8" rx="3.2" ry="3.9" fill="#FFFFFF" />
-    {/* eye patches (close-set) */}
-    <ellipse cx="10.8" cy="6.3" rx="1" ry="1.4" fill="#FFFFFF" />
-    <ellipse cx="13.2" cy="6.3" rx="1" ry="1.4" fill="#FFFFFF" />
-    {/* pupils */}
-    <circle cx="11" cy="6.6" r="0.42" fill="#0E0E0E" />
-    <circle cx="13" cy="6.6" r="0.42" fill="#0E0E0E" />
-    {/* small dark beak */}
-    <path fill="#0E0E0E" d="M11.35 7.6h1.3L12 8.45Z" />
-    {/* white feet at base */}
-    <ellipse cx="9.1" cy="22.1" rx="1.9" ry="1" fill="#FFFFFF" stroke="#0E0E0E" strokeWidth="0.55" />
-    <ellipse cx="14.9" cy="22.1" rx="1.9" ry="1" fill="#FFFFFF" stroke="#0E0E0E" strokeWidth="0.55" />
-  </svg>
+export const LinuxIcon = () => (
+  // Raster Tux supplied by the user at /linux.png (512×512 with alpha).
+  // Rendered at 20px so the penguin reads clearly inside the buttons.
+  // eslint-disable-next-line @next/next/no-img-element
+  <img src="/linux.png" alt="" width={20} height={20} style={{ display: "block" }} />
 );
 
 /* ---- Doodles (used by MemoriesCollage) ---- */
