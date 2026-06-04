@@ -29,9 +29,9 @@ pub struct ProcessorOptions {
     pub overlay_photos: bool,
     /// Composite video overlays via ffmpeg (slow, optional).
     pub overlay_videos: bool,
-    /// Absolute path to the exiftool binary.
-    pub exiftool_path: PathBuf,
-    /// Absolute path to the ffmpeg binary (required only if overlay_videos).
+    /// Absolute path to the ffmpeg binary. Required whenever there's at least
+    /// one video in the input (we use it to rewrite QuickTime dates and
+    /// optionally to composite overlays).
     pub ffmpeg_path: Option<PathBuf>,
 }
 
@@ -64,7 +64,6 @@ pub type ProgressCallback = Arc<dyn Fn(ProgressEvent) + Send + Sync>;
 /// Run the full processing pipeline.  Emits `ProgressEvent`s via `on_progress`.
 pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<ProcessorSummary> {
     let sidecars = SidecarPaths {
-        exiftool: options.exiftool_path.clone(),
         ffmpeg: options.ffmpeg_path.clone(),
     };
 
@@ -243,7 +242,7 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         let dst = out_dir.join(&fname);
         match overlay_img::composite(&main.path, &overlay.path, &dst) {
             Ok(true) => {
-                if let Err(e) = date::copy_image_dates(&main.path, &dst, &sidecars) {
+                if let Err(e) = date::copy_image_dates(&main.path, &dst) {
                     summary.errors.push(format!("{fname} (copy dates): {e}"));
                 } else {
                     summary.overlays_photo += 1;
@@ -399,11 +398,11 @@ fn apply_date(snap: &SnapFile, dst: &Path, sidecars: &SidecarPaths) -> Result<bo
     match snap.kind {
         FileKind::Image => {
             let strategy = date::strategy_for_image(dst, date_str)?;
-            date::apply_image_date(dst, &strategy, sidecars)?;
+            date::apply_image_date(dst, &strategy)?;
             Ok(true)
         }
         FileKind::Video => {
-            let strategy = date::strategy_for_video(&snap.path, date_str, sidecars)?;
+            let strategy = date::strategy_for_video(&snap.path, date_str)?;
             if strategy == date::DateStrategy::Keep {
                 return Ok(false);
             }

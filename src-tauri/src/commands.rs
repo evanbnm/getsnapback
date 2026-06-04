@@ -37,15 +37,13 @@ pub async fn start_processing(
     app: AppHandle,
     request: StartRequest,
 ) -> Result<ProcessorSummary, String> {
-    let sidecars = resolve_sidecars(&app, request.overlay_videos)
-        .map_err(|e| e.to_string())?;
+    let sidecars = resolve_sidecars(&app).map_err(|e| e.to_string())?;
 
     let options = ProcessorOptions {
         input_path: PathBuf::from(&request.input_path),
         output_path: PathBuf::from(&request.output_path),
         overlay_photos: request.overlay_photos,
         overlay_videos: request.overlay_videos,
-        exiftool_path: sidecars.exiftool.clone(),
         ffmpeg_path: sidecars.ffmpeg.clone(),
     };
 
@@ -65,27 +63,23 @@ pub async fn start_processing(
 /// In the bundled app, externalBin sidecars land next to the main executable
 /// (Contents/MacOS on macOS). resource_dir() is tried as a secondary location.
 /// In development, we fall back to system PATH.
-fn resolve_sidecars(app: &AppHandle, need_ffmpeg: bool) -> Result<SidecarPaths, String> {
+///
+/// ffmpeg is the only sidecar we use now (for video QuickTime metadata
+/// rewriting and optional overlay compositing). Photo EXIF is handled
+/// in-process by the `little_exif` crate.
+fn resolve_sidecars(app: &AppHandle) -> Result<SidecarPaths, String> {
     let triple = std::env::var("TAURI_ENV_TARGET_TRIPLE")
         .unwrap_or_else(|_| current_target_triple());
 
-    // Build a list of candidate directories to search.
     let mut dirs: Vec<std::path::PathBuf> = Vec::new();
-
-    // 1. Directory containing the current executable (externalBin destination on macOS/Windows).
     if let Ok(exe) = std::env::current_exe() {
         if let Some(parent) = exe.parent() {
             dirs.push(parent.to_path_buf());
         }
     }
-
-    // 2. Resource directory (alternative Tauri v2 placement, and dev fallback).
     if let Ok(res) = app.path().resource_dir() {
         dirs.push(res);
     }
-
-    // 3. Common package-manager install locations (Homebrew on macOS, not in
-    //    the GUI app PATH).
     for extra in &["/opt/homebrew/bin", "/usr/local/bin"] {
         dirs.push(std::path::PathBuf::from(extra));
     }
@@ -99,17 +93,8 @@ fn resolve_sidecars(app: &AppHandle, need_ffmpeg: bool) -> Result<SidecarPaths, 
         None
     };
 
-    let exiftool = find_in_dirs("exiftool")
-        .or_else(|| which("exiftool"))
-        .ok_or_else(|| "exiftool introuvable".to_string())?;
-
-    let ffmpeg = if need_ffmpeg {
-        find_in_dirs("ffmpeg").or_else(|| which("ffmpeg"))
-    } else {
-        None
-    };
-
-    Ok(SidecarPaths { exiftool, ffmpeg })
+    let ffmpeg = find_in_dirs("ffmpeg").or_else(|| which("ffmpeg"));
+    Ok(SidecarPaths { ffmpeg })
 }
 
 fn find_binary(bin_dir: &std::path::Path, name: &str, triple: &str) -> Option<PathBuf> {

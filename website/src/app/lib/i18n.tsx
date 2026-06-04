@@ -53,11 +53,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     "cta.note.intro": "First launch:",
     "cta.note.mac.label": "macOS",
     "cta.note.mac.pre":
-      " — open Terminal and run ",
-    "cta.note.mac.code":
-      'xattr -cr "/Applications/GetSnapBack.app"',
+      " — try opening the app once, then in System Settings → Privacy & Security, click ",
+    "cta.note.mac.em": "Open Anyway",
     "cta.note.mac.post":
-      ", then open the app normally.",
+      ". macOS will let you launch GetSnapBack normally from then on.",
     "cta.note.win.label": "Windows",
     "cta.note.win.pre":
       " — SmartScreen may warn you; click ",
@@ -126,11 +125,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     "cta.note.intro": "Premier lancement :",
     "cta.note.mac.label": "macOS",
     "cta.note.mac.pre":
-      " — ouvrez Terminal et exécutez ",
-    "cta.note.mac.code":
-      'xattr -cr "/Applications/GetSnapBack.app"',
+      " — essayez d'ouvrir l'app une première fois, puis dans Réglages Système → Confidentialité et sécurité, cliquez sur ",
+    "cta.note.mac.em": "Ouvrir quand même",
     "cta.note.mac.post":
-      ", puis lancez l'app normalement.",
+      ". macOS vous laissera lancer GetSnapBack normalement les fois suivantes.",
     "cta.note.win.label": "Windows",
     "cta.note.win.pre":
       " — SmartScreen peut afficher une alerte ; cliquez sur ",

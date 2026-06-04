@@ -1,6 +1,6 @@
 [package]
 name = "getsnapback"
-version = "1.0.4"
+version = "1.0.5"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/evanbnm/getsnapback"
@@ -27,6 +27,8 @@ sha2       = "0.10"
 hex        = "0.4"
 chrono     = { version = "0.4", features = ["serde"] }
 image      = { version = "0.25", features = ["jpeg", "png", "webp"] }
+little_exif = "0.6"
+mp4         = "0.14"
 walkdir    = "2"
 tempfile   = "3"
 zip        = "2"
