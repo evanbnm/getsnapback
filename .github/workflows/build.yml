@@ -127,10 +127,7 @@ jobs:
             ## Téléchargement
 
             ### macOS
-            - **Mac Apple Silicon** (M1/M2/M3/M4) → `GetSnapBack_*_aarch64.dmg`
-
-            > Mac Intel : pas de build officiel. Compile depuis les sources, ou
-            > utilise une version antérieure à v1.1.0.
+            - `GetSnapBack_*_aarch64.dmg`
 
             ### Windows
             - `GetSnapBack_*_x64-setup.exe` (installeur) ou `GetSnapBack_*_x64_en-US.msi`

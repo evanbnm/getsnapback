@@ -21,10 +21,6 @@ Sources are chosen for static linkage + matching the HW encoders our
 | `x86_64-pc-windows-msvc.exe`    | BtbN/FFmpeg-Builds (win64-gpl)  | h264_nvenc/qsv/amf       |
 | `x86_64-unknown-linux-gnu`      | BtbN/FFmpeg-Builds (linux64-gpl)| h264_nvenc/qsv           |
 
-> Intel Mac (`x86_64-apple-darwin`) is not built in CI — GitHub's `macos-13`
-> runner queue is too unreliable. Apple Silicon users get the native arm64
-> build; Intel Mac users can build from source.
-
 ### macOS arm64
 ```bash
 curl -fsSL https://www.osxexperts.net/ffmpeg71arm.zip -o /tmp/ff.zip
