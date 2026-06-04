@@ -1416,7 +1416,7 @@ dependencies = [
 
 [[package]]
 name = "getsnapback"
-version = "1.0.6"
+version = "1.1.0"
 dependencies = [
  "chrono",
  "env_logger",
@@ -1425,6 +1425,8 @@ dependencies = [
  "little_exif",
  "log",
  "mp4",
+ "once_cell",
+ "rayon",
  "serde",
  "serde_json",
  "sha2",

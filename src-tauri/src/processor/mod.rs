@@ -5,11 +5,13 @@ pub mod overlay_img;
 pub mod overlay_vid;
 pub mod scan;
 pub mod sidecar;
+pub mod video_encoder;
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::{Arc, Mutex};
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 pub use error::ProcessorError;
@@ -152,13 +154,41 @@ pub fn run(
     // successfully process. Sorted Vec<YearStat> is filled at the end.
     let mut year_counts: HashMap<i32, u32> = HashMap::new();
 
-    // ── Pre-pass: content-hash dedup on inputs ────────────────────────────────
+    // ── Phase plan ────────────────────────────────────────────────────────────
+    // Pre-pass (content-hash dedup on inputs) is shown as phase 1 so the user
+    // sees progress during what is often the longest silent block — hashing
+    // every input byte takes minutes on a large export.
+    let total_phases: u8 = if options.overlay_videos { 6 } else { 5 };
+    let video_overlay_phase: Option<u8> = if options.overlay_videos { Some(4) } else { None };
+    let dedup_content_phase: u8 = if options.overlay_videos { 5 } else { 4 };
+    let dedup_uuid_phase: u8 = if options.overlay_videos { 6 } else { 5 };
+
+    // ── Phase 1 — Pre-pass: content-hash dedup on inputs ──────────────────────
     // Catches photos/videos that were copy-pasted then renamed (different UUID
     // or date prefix). We hash raw input bytes, so the comparison is robust to
     // any later EXIF/QuickTime rewriting we do.
     let mains: Vec<&SnapFile> = files.iter().filter(|f| f.role == FileRole::Main).collect();
+    let prepass_total = mains.len() as u64;
+    on_progress(ProgressEvent {
+        phase: 1,
+        total_phases,
+        phase_label: "phase_prepass".to_string(),
+        processed: 0,
+        total: prepass_total,
+        current_file: None,
+    });
+
     let mut by_hash: HashMap<String, Vec<&SnapFile>> = HashMap::new();
-    for snap in &mains {
+    for (i, snap) in mains.iter().enumerate() {
+        if check_cancelled(&cancel) { return Err(ProcessorError::Cancelled); }
+        on_progress(ProgressEvent {
+            phase: 1,
+            total_phases,
+            phase_label: "phase_prepass".to_string(),
+            processed: i as u64,
+            total: prepass_total,
+            current_file: Some(file_name(&snap.path)),
+        });
         match dedup::file_hash(&snap.path) {
             Ok(h) => by_hash.entry(h).or_default().push(snap),
             Err(_) => {} // skip unreadable; let later phases surface the error
@@ -200,12 +230,6 @@ pub fn run(
         }
     }
 
-    // ── Phase plan ────────────────────────────────────────────────────────────
-    let total_phases: u8 = if options.overlay_videos { 5 } else { 4 };
-    let video_overlay_phase: Option<u8> = if options.overlay_videos { Some(3) } else { None };
-    let dedup_content_phase: u8 = if options.overlay_videos { 4 } else { 3 };
-    let dedup_uuid_phase: u8 = if options.overlay_videos { 5 } else { 4 };
-
     // When video overlay compositing is disabled, video mains-with-overlay are
     // processed alongside standalone mains in phase 1 (just copy + date).
     let standalone_mains: Vec<&SnapFile> = files
@@ -220,15 +244,15 @@ pub fn run(
         })
         .collect();
 
-    let phase1_total = standalone_mains.len() as u64;
+    let dating_total = standalone_mains.len() as u64;
 
-    // ── Phase 1 — Mains without overlay processing: copy + date ───────────────
+    // ── Phase 2 — Mains without overlay processing: copy + date ───────────────
     on_progress(ProgressEvent {
-        phase: 1,
+        phase: 2,
         total_phases,
         phase_label: "phase_dating".to_string(),
         processed: 0,
-        total: phase1_total,
+        total: dating_total,
         current_file: None,
     });
 
@@ -236,11 +260,11 @@ pub fn run(
         if check_cancelled(&cancel) { return Err(ProcessorError::Cancelled); }
         let fname = file_name(&snap.path);
         on_progress(ProgressEvent {
-            phase: 1,
+            phase: 2,
             total_phases,
             phase_label: "phase_dating".to_string(),
             processed: i as u64,
-            total: phase1_total,
+            total: dating_total,
             current_file: Some(fname.clone()),
         });
 
@@ -264,62 +288,76 @@ pub fn run(
         }
     }
 
-    // ── Phase 2a — Photo overlays ─────────────────────────────────────────────
+    // ── Phase 3 — Photo overlays ──────────────────────────────────────────────
     let photo_pairs: Vec<_> = pairs
         .iter()
         .filter(|(m, _)| m.kind == FileKind::Image)
         .collect();
 
+    let photo_total = photo_pairs.len() as u64;
     on_progress(ProgressEvent {
-        phase: 2,
+        phase: 3,
         total_phases,
         phase_label: "phase_overlay_photo".to_string(),
         processed: 0,
-        total: photo_pairs.len() as u64,
+        total: photo_total,
         current_file: None,
     });
 
-    for (i, (main, overlay)) in photo_pairs.iter().enumerate() {
-        if check_cancelled(&cancel) { return Err(ProcessorError::Cancelled); }
+    // Photo overlay is embarrassingly parallel: each pair writes to a unique
+    // output path and reads from disjoint inputs. Running on all cores cuts
+    // wall-clock time on multi-core machines (the bottleneck is image decode +
+    // resize + JPEG encode, all CPU-bound).
+    let photo_success = AtomicU64::new(0);
+    let photo_processed = AtomicU64::new(0);
+    let photo_errors: Mutex<Vec<String>> = Mutex::new(Vec::new());
+
+    photo_pairs.par_iter().for_each(|(main, overlay)| {
+        if check_cancelled(&cancel) { return; }
         let fname = file_name(&main.path);
-        on_progress(ProgressEvent {
-            phase: 2,
-            total_phases,
-            phase_label: "phase_overlay_photo".to_string(),
-            processed: i as u64,
-            total: photo_pairs.len() as u64,
-            current_file: Some(fname.clone()),
-        });
 
         if !options.overlay_photos {
-            // Option disabled: just copy the main.
             if let Err(e) = copy_and_date(main, out_dir, &sidecars) {
-                summary.errors.push(format!("{fname}: {e}"));
+                photo_errors.lock().unwrap().push(format!("{fname}: {e}"));
             }
-            continue;
-        }
-
-        let dst = out_dir.join(&fname);
-        match overlay_img::composite(&main.path, &overlay.path, &dst) {
-            Ok(true) => {
-                if let Err(e) = date::copy_image_dates(&main.path, &dst) {
-                    summary.errors.push(format!("{fname} (copy dates): {e}"));
-                } else {
-                    summary.overlays_photo += 1;
+        } else {
+            let dst = out_dir.join(&fname);
+            match overlay_img::composite(&main.path, &overlay.path, &dst) {
+                Ok(true) => {
+                    if let Err(e) = date::copy_image_dates(&main.path, &dst) {
+                        photo_errors.lock().unwrap()
+                            .push(format!("{fname} (copy dates): {e}"));
+                    } else {
+                        photo_success.fetch_add(1, Ordering::Relaxed);
+                    }
+                }
+                Ok(false) => unreachable!("composite no longer returns Ok(false)"),
+                Err(e) => {
+                    photo_errors.lock().unwrap().push(format!(
+                        "{fname}: overlay illisible ({}) — {e}",
+                        file_name(&overlay.path)
+                    ));
+                    let _ = copy_and_date(main, out_dir, &sidecars);
                 }
             }
-            Ok(false) => unreachable!("composite no longer returns Ok(false)"),
-            Err(e) => {
-                summary.errors.push(format!(
-                    "{fname}: overlay illisible ({}) — {e}",
-                    file_name(&overlay.path)
-                ));
-                let _ = copy_and_date(main, out_dir, &sidecars);
-            }
         }
-    }
 
-    // ── Phase 2b — Video overlays (only when enabled) ─────────────────────────
+        let done = photo_processed.fetch_add(1, Ordering::Relaxed) + 1;
+        on_progress(ProgressEvent {
+            phase: 3,
+            total_phases,
+            phase_label: "phase_overlay_photo".to_string(),
+            processed: done,
+            total: photo_total,
+            current_file: Some(fname),
+        });
+    });
+
+    if check_cancelled(&cancel) { return Err(ProcessorError::Cancelled); }
+    summary.overlays_photo += photo_success.load(Ordering::Relaxed);
+    summary.errors.extend(photo_errors.into_inner().unwrap());
+
+    // ── Phase 4 — Video overlays (only when enabled) ──────────────────────────
     if let Some(phase_num) = video_overlay_phase {
         let video_pairs: Vec<_> = pairs
             .iter()

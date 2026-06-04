@@ -22,7 +22,15 @@
   function handleStart(e)      { options = e.detail; screen = 'progress'; }
   function handleDone(e)       { summary = e.detail;  screen = 'summary';  }
   function handleCancelled()   { options = null; screen = 'welcome'; }
-  function handleRestart()     { options = null; summary = null; screen = 'welcome'; }
+  function handleRestart() {
+    options = null;
+    summary = null;
+    screen = 'welcome';
+    // Summary screen can be scrolled (year histogram + import steps). Reset
+    // viewport so the user lands at the top of the welcome screen, not wherever
+    // they left off on Summary.
+    window.scrollTo(0, 0);
+  }
   function toggleLang()        { $locale = $locale === 'en' ? 'fr' : 'en'; }
 
   async function openUpdate() {

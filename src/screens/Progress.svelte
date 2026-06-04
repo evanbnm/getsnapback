@@ -9,7 +9,7 @@
 
   const dispatch   = createEventDispatcher();
 
-  let phaseCount = options?.overlay_videos ? 5 : 4;
+  let phaseCount = options?.overlay_videos ? 6 : 5;
   let phase      = 0;
   let phaseLabel = '';
   let processed  = 0;

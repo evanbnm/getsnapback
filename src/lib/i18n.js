@@ -1,6 +1,36 @@
 import { writable, derived } from 'svelte/store';
 
-export const locale = writable('en');
+const STORAGE_KEY = 'sdf-lang';
+
+// Default locale: a user override saved from a previous session wins; otherwise
+// fall back to the system/browser language reported by the webview. Anything
+// not French defaults to English.
+function initialLocale() {
+  try {
+    const saved = typeof localStorage !== 'undefined'
+      ? localStorage.getItem(STORAGE_KEY)
+      : null;
+    if (saved === 'fr' || saved === 'en') return saved;
+  } catch {}
+  try {
+    const nav = (typeof navigator !== 'undefined' && navigator.language) || 'en';
+    return nav.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+export const locale = writable(initialLocale());
+
+// Persist any subsequent change (FR/EN toggle in the header) so the same
+// preference is restored on the next launch.
+locale.subscribe((value) => {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, value);
+    }
+  } catch {}
+});
 
 const translations = {
   en: {
@@ -53,6 +83,7 @@ const translations = {
     update_view: 'View release',
 
     // phase labels (sent as keys from the Rust processor)
+    phase_prepass: 'Analyzing input files',
     phase_dating: 'Dating files',
     phase_overlay_photo: 'Compositing photo overlays',
     phase_overlay_video: 'Compositing video overlays',
@@ -130,6 +161,7 @@ const translations = {
     update_view: 'Voir la version',
 
     // phase labels
+    phase_prepass: 'Analyse des fichiers',
     phase_dating: 'Datation des fichiers',
     phase_overlay_photo: 'Incrustation des overlays photo',
     phase_overlay_video: 'Incrustation des overlays vidéo',
