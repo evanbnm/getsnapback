@@ -320,3 +320,74 @@ h2 { font-size: 15px; font-weight: 700; }
   gap: 5px;
 }
 .steps li { font-size: 13px; color: var(--muted); }
+
+/* ── histogram ──────────────────────────────────────────────────────────── */
+.histogram { margin-bottom: 16px; }
+.hist-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.hist-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.hist-range {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  opacity: .7;
+}
+.hist-bars {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+  height: 78px;
+  padding: 8px 8px 6px;
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.hist-bar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  cursor: default;
+}
+.hist-bar-track {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+}
+.hist-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-h) 100%);
+  border-radius: 3px 3px 0 0;
+  min-height: 3px;
+  transition: opacity .15s;
+}
+.hist-bar:hover .hist-bar-fill { opacity: .85; }
+.hist-bar-year {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  opacity: .8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── share card button ───────────────────────────────────────────────────── */
+.share-btn { gap: 7px; }
+.share-btn:disabled { opacity: .6; }

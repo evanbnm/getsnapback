@@ -46,6 +46,12 @@ pub struct ProgressEvent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct YearStat {
+    pub year: i32,
+    pub count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessorSummary {
     pub photos_dated: u64,
     pub videos_dated: u64,
@@ -55,6 +61,9 @@ pub struct ProcessorSummary {
     pub dedup_uuid: u64,
     pub errors: Vec<String>,
     pub output_path: PathBuf,
+    /// One entry per year that had at least one memory, sorted ascending.
+    /// Powers the histogram on the summary screen and the share card.
+    pub years: Vec<YearStat>,
 }
 
 pub type ProgressCallback = Arc<dyn Fn(ProgressEvent) + Send + Sync>;
@@ -107,7 +116,12 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         dedup_uuid: 0,
         errors: Vec::new(),
         output_path: out_dir.clone(),
+        years: Vec::new(),
     };
+
+    // Aggregate years (from filename date_str) across every main file we
+    // successfully process. Sorted Vec<YearStat> is filled at the end.
+    let mut year_counts: HashMap<i32, u32> = HashMap::new();
 
     // ── Pre-pass: content-hash dedup on inputs ────────────────────────────────
     // Catches photos/videos that were copy-pasted then renamed (different UUID
@@ -141,6 +155,21 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
         .into_iter()
         .filter(|(m, _)| !input_duplicates.contains(&m.path))
         .collect();
+
+    // Year-counts for the histogram + share card. Built off non-duplicate
+    // mains' filename date_str so the total reflects what the user actually
+    // gets out (modulo the residual post-processing dedup, which removes
+    // very few files in practice).
+    for snap in &mains {
+        if input_duplicates.contains(&snap.path) {
+            continue;
+        }
+        if let Some(ds) = &snap.date_str {
+            if let Some(y) = ds.split('-').next().and_then(|p| p.parse::<i32>().ok()) {
+                *year_counts.entry(y).or_insert(0) += 1;
+            }
+        }
+    }
 
     // ── Phase plan ────────────────────────────────────────────────────────────
     let total_phases: u8 = if options.overlay_videos { 5 } else { 4 };
@@ -362,6 +391,15 @@ pub fn run(options: ProcessorOptions, on_progress: ProgressCallback) -> Result<P
             }
         }
     }
+
+    // Finalize the year histogram (sorted ascending so the UI can iterate
+    // straight off the wire).
+    let mut years: Vec<YearStat> = year_counts
+        .into_iter()
+        .map(|(year, count)| YearStat { year, count })
+        .collect();
+    years.sort_by_key(|y| y.year);
+    summary.years = years;
 
     Ok(summary)
 }
