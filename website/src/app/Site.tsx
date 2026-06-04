@@ -154,14 +154,6 @@ function WhatItDoes() {
 
 function HowToExport() {
   const { t } = useT();
-  const steps = [
-    t("export.s1"),
-    t("export.s2"),
-    t("export.s3"),
-    t("export.s4"),
-    t("export.s5"),
-    t("export.s6"),
-  ];
   return (
     <section className="section section-pad" id="export">
       <div className="wrap">
@@ -181,18 +173,7 @@ function HowToExport() {
             {t("export.cta")} <ArrowIcon />
           </a>
 
-          <div className="export-procedure">
-            <span className="eyebrow">{t("export.procedure")}</span>
-            <ol className="export-steps">
-              {steps.map((step, i) => (
-                <li key={i}>
-                  <span className="export-step-n">{i + 1}</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-            <p className="export-note">{t("export.note")}</p>
-          </div>
+          <p className="export-note">{t("export.note")}</p>
         </div>
       </div>
     </section>
