@@ -37,6 +37,9 @@ export default function Site({ assets }: { assets: ReleaseAssets }) {
         <DownloadCTA assets={assets} />
       </Reveal>
       <Reveal>
+        <FAQ />
+      </Reveal>
+      <Reveal>
         <Support />
       </Reveal>
       <Footer />
@@ -267,6 +270,35 @@ function DownloadCTA({ assets }: { assets: ReleaseAssets }) {
               </p>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* FAQ — Q/R verbatim from the FAQPage JSON-LD in page.tsx so Google
+   considers them eligible for rich-result rendering. Uses <details> so
+   each row is keyboard-accessible and crawlable without JS. */
+function FAQ() {
+  const { t } = useT();
+  const items = [1, 2, 3, 4, 5, 6].map((n) => ({
+    q: t(`faq.q${n}.q`),
+    a: t(`faq.q${n}.a`),
+  }));
+  return (
+    <section className="section section-pad" id="faq">
+      <div className="wrap">
+        <span className="eyebrow dark">{t("faq.eyebrow")}</span>
+        <h2 className="h2" style={{ marginTop: 14, maxWidth: "22ch" }}>
+          {t("faq.title")}
+        </h2>
+        <div className="faq-list">
+          {items.map(({ q, a }, i) => (
+            <details key={i} className="faq-item">
+              <summary>{q}</summary>
+              <p>{a}</p>
+            </details>
+          ))}
         </div>
       </div>
     </section>
