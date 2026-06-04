@@ -1,9 +1,12 @@
 <script>
   import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { open as openDialog } from '@tauri-apps/plugin-dialog';
+  import { open as openExternal } from '@tauri-apps/plugin-shell';
   import { getCurrentWindow } from '@tauri-apps/api/window';
   import { t } from '../lib/i18n.js';
   import { defaultOutputPath, shortPath } from '../lib/format.js';
+
+  const SNAP_EXPORT_URL = 'https://accounts.snapchat.com/v2/download-my-data';
 
   const dispatch = createEventDispatcher();
 
@@ -65,6 +68,14 @@
       overlay_videos: overlayVideos,
     });
   }
+
+  async function openSnapExport() {
+    try {
+      await openExternal(SNAP_EXPORT_URL);
+    } catch (e) {
+      console.error('Failed to open Snapchat export URL:', e);
+    }
+  }
 </script>
 
 <div class="screen">
@@ -84,6 +95,22 @@
       <h1 style="margin-bottom:5px">GetSnapBack</h1>
       <p class="muted">{$t('app_subtitle')}</p>
     </div>
+
+    <!-- Snapchat export link: opens the official "Download my data" page so
+         users who don't have their export yet can grab it without leaving the
+         app context. -->
+    <button
+      class="btn btn-outline snap-export-btn"
+      on:click={openSnapExport}
+      style="width:100%;margin-bottom:14px;font-size:13px;gap:7px"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 17L17 7"/>
+        <path d="M9 7h8v8"/>
+      </svg>
+      {$t('snap_export_btn')}
+    </button>
 
     <!-- Drop zone -->
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->

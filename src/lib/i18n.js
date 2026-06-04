@@ -10,6 +10,7 @@ const translations = {
 
     // welcome
     app_subtitle: 'Restore the real dates on your Snapchat memories before importing to Photos or Google Photos.',
+    snap_export_btn: "Get my memories from Snapchat",
     drop_idle_title: 'Drop your export here',
     drop_idle_sub: 'Snapchat ZIP or extracted folder',
     drop_over_title: 'Release to select',
@@ -73,6 +74,7 @@ const translations = {
     lang_other: 'EN',
 
     app_subtitle: "Redonne leur vraie date à vos souvenirs Snapchat avant l'import dans Photos ou Google Photos.",
+    snap_export_btn: "Récupérer mes souvenirs depuis Snapchat",
     drop_idle_title: 'Déposez votre export ici',
     drop_idle_sub: 'ZIP Snapchat ou dossier décompressé',
     drop_over_title: 'Relâchez ici',
