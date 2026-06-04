@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "GetSnapBack",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "identifier": "app.getsnapback.desktop",
   "build": {
     "frontendDist": "../dist",
@@ -33,10 +33,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/exiftool", "binaries/ffmpeg"],
-    "macOS": {
-      "signingIdentity": "-"
-    }
+    "externalBin": ["binaries/exiftool", "binaries/ffmpeg"]
   },
   "plugins": {
     "shell": {

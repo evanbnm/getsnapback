@@ -362,6 +362,18 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
 .note { font-size: 12px; color: var(--color-muted); margin-top: 16px; line-height: 1.6; font-weight: 500; }
 .note strong { color: var(--color-text); font-weight: 700; }
 .note em { font-style: italic; }
+.note-code {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xs);
+  padding: 1px 6px;
+  color: var(--color-text);
+  white-space: nowrap;
+}
 
 /* Support / Buy me a coffee */
 .support-card {
@@ -699,8 +711,14 @@ h1, h2, h3 { letter-spacing: -0.03em; font-weight: 800; line-height: 1.05; }
   .deco-pink { width: 200px; height: 200px; bottom: -100px; left: -60px; }
   .cta-grid { gap: 28px; }
 
-  /* note text shrinks on phones */
+  /* macOS unblock command needs to wrap on narrow widths */
   .note { font-size: 11.5px; }
+  .note-code {
+    white-space: normal;
+    word-break: break-all;
+    font-size: 10.5px;
+    padding: 1px 5px;
+  }
 
   /* export section — copy + smaller floating art */
   .export-copy .h2 { font-size: clamp(1.7rem, 7vw, 2.2rem); }
