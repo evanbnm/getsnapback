@@ -23,6 +23,10 @@ export default function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Trim the bottom 35% of the viewport so a section only counts as
+    // "in view" once it's clearly scrolled into the upper part of the
+    // screen. Without this, on tall monitors multiple sections trigger
+    // at page-load and the user never sees the actual reveal motion.
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -32,7 +36,7 @@ export default function Reveal({
           }
         }
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.05 }
+      { rootMargin: "0px 0px -35% 0px", threshold: 0.15 }
     );
     io.observe(el);
     return () => io.disconnect();

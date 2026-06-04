@@ -30,11 +30,6 @@ const DICT: Record<Lang, Record<string, string>> = {
     "app.body":
       "Point it at your export, watch the counter climb, and get a clean folder back. That is the whole thing.",
     "app.link": "Download",
-    "demo.eyebrow": "live demo",
-    "demo.title": "Watch it run.",
-    "demo.body":
-      "From a dropped folder to a clean snapchat_final/ in a few seconds. No upload, no waiting.",
-    "demo.placeholder": "drop your screen recording here",
     "what.eyebrow": "what it does",
     "what.f1.t": "Real dates",
     "what.f1.b":
@@ -107,11 +102,6 @@ const DICT: Record<Lang, Record<string, string>> = {
     "app.body":
       "Pointez-la vers votre export, regardez le compteur grimper, et récupérez un dossier propre. C'est tout.",
     "app.link": "Télécharger",
-    "demo.eyebrow": "démo",
-    "demo.title": "Regardez-la tourner.",
-    "demo.body":
-      "Du dossier déposé au snapchat_final/ propre, en quelques secondes. Aucun envoi, aucune attente.",
-    "demo.placeholder": "déposez votre capture d'écran ici",
     "what.eyebrow": "ce qu'elle fait",
     "what.f1.t": "Vraies dates",
     "what.f1.b":

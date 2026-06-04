@@ -1,6 +1,5 @@
 "use client";
 
-import AppDemo from "./components/AppDemo";
 import AppPreview from "./components/AppPreview";
 import DownloadButtons, {
   type ReleaseAssets,
@@ -33,9 +32,6 @@ export default function Site({ assets }: { assets: ReleaseAssets }) {
       </Reveal>
       <Reveal>
         <HowToExport />
-      </Reveal>
-      <Reveal>
-        <AppDemo />
       </Reveal>
       <Reveal>
         <DownloadCTA assets={assets} />
